@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "WREngine",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "ThirdPerson",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

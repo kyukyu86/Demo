@@ -19,12 +19,13 @@ ADMPreviewActorDynamic::ADMPreviewActorDynamic() : Super()
 		SkeletalMeshComponent->PrimaryComponentTick.TickGroup = TG_PrePhysics;
 		SkeletalMeshComponent->AttachToComponent(MeshParent, FAttachmentTransformRules::KeepRelativeTransform);
 		SkeletalMeshComponent->SetRelativeLocation(FVector::ZeroVector);
-		static FName MeshCollisionProfileName(TEXT("PreviewActor"));
+		static FName MeshCollisionProfileName(TEXT("NoCollision"));
 		SkeletalMeshComponent->SetCollisionProfileName(MeshCollisionProfileName);
 		SkeletalMeshComponent->SetGenerateOverlapEvents(false);
 		SkeletalMeshComponent->SetCanEverAffectNavigation(false);
 
 		SkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+		SkeletalMeshComponent->SetEnableGravity(false);
 	}
 }
 

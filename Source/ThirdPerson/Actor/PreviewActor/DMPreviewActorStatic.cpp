@@ -16,10 +16,12 @@ ADMPreviewActorStatic::ADMPreviewActorStatic() : Super()
 		StaticMeshComponent->bAffectDynamicIndirectLighting = true;
 		StaticMeshComponent->PrimaryComponentTick.TickGroup = TG_PrePhysics;
 		StaticMeshComponent->AttachToComponent(MeshParent, FAttachmentTransformRules::KeepRelativeTransform);
-		static FName MeshCollisionProfileName(TEXT("PreviewActor"));
+		static FName MeshCollisionProfileName(TEXT("NoCollision"));
 		StaticMeshComponent->SetCollisionProfileName(MeshCollisionProfileName);
 		StaticMeshComponent->SetGenerateOverlapEvents(false);
 		StaticMeshComponent->SetCanEverAffectNavigation(false);
+
+		StaticMeshComponent->SetEnableGravity(false);
 	}
 }
 

@@ -14,9 +14,6 @@
 
 AThirdPersonCharacter::AThirdPersonCharacter()
 {
-	int32 a = 0;
-	a = 2;
-
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 

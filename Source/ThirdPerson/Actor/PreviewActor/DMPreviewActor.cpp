@@ -6,6 +6,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Math/UnrealMathUtility.h"
 #include "Components/SceneComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/SkeletalMesh.h"
 
 ADMPreviewActor::ADMPreviewActor()
 {
@@ -37,6 +39,31 @@ void ADMPreviewActor::Tick(float DeltaTime)
 
 }
 
+void ADMPreviewActor::SetMesh(const EDMPreviewType InType, UObject* InObject, class UAnimationAsset* InAnim /* = nullptr */)
+{
+	switch (InType)
+	{
+	case EDMPreviewType::Static:
+	{
+		UStaticMesh* CastedObject = Cast<UStaticMesh>(InObject);
+		if (CastedObject == nullptr)
+			return;
+
+		SetStaticMesh(CastedObject);
+	}
+	break;
+	case EDMPreviewType::Dynamic:
+	{
+		USkeletalMesh* CastedObject = Cast<USkeletalMesh>(InObject);
+		if (CastedObject == nullptr)
+			return;
+
+		SetSkeletalMesh(CastedObject, InAnim);
+	}
+	break;
+	}
+}
+
 void ADMPreviewActor::OnInputStart(const FVector InCurrentLocation)
 {
 	bRotate = true;
@@ -56,7 +83,7 @@ void ADMPreviewActor::OnInputMove(const FVector InCurrentLocation)
 	FVector DiffLocation = InCurrentLocation - InputStartLocation;
 	FRotator AddRotator = FRotator::ZeroRotator;
 	AddRotator.Yaw = DiffLocation.X * -1.f;
-	MeshComponent->AddWorldRotation(AddRotator);
+	MeshParent->AddWorldRotation(AddRotator);
 
 	InputStartLocation = InCurrentLocation;
 }

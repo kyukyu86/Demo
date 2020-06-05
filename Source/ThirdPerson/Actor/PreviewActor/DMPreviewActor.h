@@ -6,6 +6,15 @@
 #include "GameFramework/Actor.h"
 #include "DMPreviewActor.generated.h"
 
+
+UENUM(BlueprintType)
+enum class EDMPreviewType : uint8
+{
+	Static,
+	Dynamic,
+};
+
+
 UCLASS()
 class THIRDPERSON_API ADMPreviewActor : public AActor
 {
@@ -14,9 +23,9 @@ class THIRDPERSON_API ADMPreviewActor : public AActor
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent*	MeshParent	= nullptr;
-	FVector		CurrentExtendMesh	= FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FVector		DesiredExtendMesh	= FVector(30.f, 30.f, 30.f);
+	FVector		CurrentExtendMesh	= FVector::ZeroVector;
 	bool		bRotate				= false;
 	FVector		InputStartLocation	= FVector::ZeroVector;
 
@@ -29,9 +38,11 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-	
-	void SetDesiredExtendSize(const FVector IN InSize) { DesiredExtendMesh = InSize; }
+		
+	FORCEINLINE void SetDesiredExtendSize(const FVector IN InSize) { DesiredExtendMesh = InSize; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetMesh(const EDMPreviewType InType, UObject* InObject, class UAnimationAsset* InAnim = nullptr);
 	UFUNCTION(BlueprintCallable)
 	void OnInputStart(const FVector InCurrentLocation);
 	UFUNCTION(BlueprintCallable)

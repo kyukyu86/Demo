@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Component/DMActorComponentPreview.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AThirdPersonCharacter
@@ -76,6 +77,11 @@ void AThirdPersonCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AThirdPersonCharacter::OnResetVR);
 }
 
+
+void AThirdPersonCharacter::BuildComponents()
+{
+	AddComponent()
+}
 
 void AThirdPersonCharacter::OnResetVR()
 {

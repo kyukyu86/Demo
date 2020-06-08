@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "DMPreviewActor.generated.h"
 
 
@@ -12,6 +13,7 @@ enum class EDMPreviewType : uint8
 {
 	Static,
 	Dynamic,
+	CustomActor,
 };
 
 
@@ -22,7 +24,9 @@ class THIRDPERSON_API ADMPreviewActor : public AActor
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	USceneComponent*	MeshParent	= nullptr;
+	USceneComponent*			MeshParent		= nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneCaptureComponent2D*	SceneCapture	= nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FVector		DesiredExtendMesh	= FVector(30.f, 30.f, 30.f);
 	FVector		CurrentExtendMesh	= FVector::ZeroVector;
@@ -33,12 +37,14 @@ public:
 	ADMPreviewActor();
 
 protected:
-	virtual void BeginPlay() override;
+	virtual void BeginPlay() override;	
+	virtual void UpdateScale();
+
 	virtual class UMeshComponent* GetMeshComponent() { return nullptr; }
 
 public:	
-	virtual void Tick(float DeltaTime) override;
-		
+	virtual void Tick(float DeltaTime) override;	
+
 	FORCEINLINE void SetDesiredExtendSize(const FVector IN InSize) { DesiredExtendMesh = InSize; }
 
 	UFUNCTION(BlueprintCallable)
@@ -49,9 +55,9 @@ public:
 	void OnInputMove(const FVector InCurrentLocation);
 	UFUNCTION(BlueprintCallable)
 	void OnInputEnd();
+	
 	UFUNCTION(BlueprintCallable)
-	void UpdateScale();
-
+	virtual void SetCustomActor(class AActor* InActor, class UAnimationAsset* InAnim) {}
 	UFUNCTION(BlueprintCallable)
 	virtual void SetSkeletalMesh(class USkeletalMesh* InMesh, class UAnimationAsset* InAnim) {}
 	UFUNCTION(BlueprintCallable)

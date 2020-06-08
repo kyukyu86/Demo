@@ -8,6 +8,8 @@
 #include "Components/SceneComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Kismet/KismetMaterialLibrary.h"
 
 ADMPreviewActor::ADMPreviewActor()
 {
@@ -25,12 +27,57 @@ ADMPreviewActor::ADMPreviewActor()
 	{
 		MeshParent->SetupAttachment(GetRootComponent());
 	}
+	
+	USceneComponent* SceneComponent = CreateDefaultSubobject<USceneComponent>("Scene");
+	if (SceneComponent)
+	{
+		SceneComponent->SetupAttachment(GetRootComponent());
+
+		if (SceneCapture == nullptr)
+		{
+			//USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
+			//SceneCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+			//SceneCapture->CaptureStereoPass = EStereoscopicPass::eSSP_FULL;//LEFT_EYE; //??
+			//SceneCapture->bCaptureOnMovement = false;
+			SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>("SceneCapture");
+			if (SceneCapture)
+			{
+				SceneCapture->AttachToComponent(SceneComponent, FAttachmentTransformRules::KeepRelativeTransform);
+				SceneCapture->SetRelativeLocation(FVector(0.f, 100.f, 0.f));
+				SceneCapture->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+				SceneCapture->bCaptureEveryFrame = true;
+				SceneCapture->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+				//SceneCapture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+				SceneCapture->FOVAngle = 45.f;
+				FString TargetTexturePath = TEXT("/Game/StarterContent/Blueprints/Assets/Actor/PreviewActor/RT2D_Preview.RT2D_Preview");
+				SceneCapture->TextureTarget = LoadObject<UTextureRenderTarget2D>(NULL, *TargetTexturePath);
+			}
+			//SceneCapture->RegisterComponent();
+
+// 			const FName TargetName = MakeUniqueObjectName(this, UTextureRenderTarget2D::StaticClass(), TEXT("RT2D_Preview"));
+// 			SceneCapture->TextureTarget = NewObject<UTextureRenderTarget2D>(this, TargetName);
+// 			SceneCapture->TextureTarget->SizeX = 256;
+// 			SceneCapture->TextureTarget->SizeY = 512;
+
+// 			const FName TargetName = MakeUniqueObjectName(this, UMarerial::StaticClass(), TEXT("RT2D_Preview"));
+// 			UKismetMaterialLibrary::CreateDynamicMaterialInstance()
+// 			SceneCapture->TextureTarget = NewObject<UTextureRenderTarget2D>(this, TargetName);
+
+			//SceneCapture->RegisterComponentWithWorld(GWorld);
+			//SceneCapture->UpdateContent();
+		}		
+	}
 }
 
 void ADMPreviewActor::BeginPlay()
 {
 	Super::BeginPlay();	
 	
+// 	if (SceneCapture->IsValidLowLevel())
+// 	{
+// 		SceneCapture->DestroyComponent();
+// 		SceneCapture = nullptr;
+// 	}
 }
 
 void ADMPreviewActor::Tick(float DeltaTime)
@@ -59,6 +106,15 @@ void ADMPreviewActor::SetMesh(const EDMPreviewType InType, UObject* InObject, cl
 			return;
 
 		SetSkeletalMesh(CastedObject, InAnim);
+	}
+	break;
+	case EDMPreviewType::CustomActor:
+	{
+		AActor* CastedObject = Cast<AActor>(InObject);
+		if (CastedObject == nullptr)
+			return;
+
+		SetCustomActor(CastedObject, InAnim);
 	}
 	break;
 	}
@@ -95,7 +151,7 @@ void ADMPreviewActor::OnInputEnd()
 }
 
 void ADMPreviewActor::UpdateScale()
-{
+{	
 	UMeshComponent* MeshComponent = GetMeshComponent();
 	if (MeshComponent == nullptr)
 		return;
@@ -111,10 +167,10 @@ void ADMPreviewActor::UpdateScale()
 	float RatioX = DesiredExtendMesh.X / CurrentExtendMesh.X;
 	float RatioY = DesiredExtendMesh.Y / CurrentExtendMesh.Y;
 	float RatioZ = DesiredExtendMesh.Z / CurrentExtendMesh.Z;
-	float MaxRatio = FMath::Min3(RatioX, RatioY, RatioZ);
+	float MulScale = FMath::Min3(RatioX, RatioY, RatioZ);
 
 	FVector CurrentMeshScale = MeshComponent->GetComponentScale();
-	FVector ModifiedMeshScale = CurrentMeshScale * MaxRatio;
+	FVector ModifiedMeshScale = CurrentMeshScale * MulScale;
 	MeshComponent->SetWorldScale3D(ModifiedMeshScale);
 
 	// Modify Location

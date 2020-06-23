@@ -4,6 +4,7 @@
 #include "DMGameModeField.h"
 #include "../ThirdPersonCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+#include "../Manager/DMUIManager.h"
 
 ADMGameModeField::ADMGameModeField()
 {
@@ -18,4 +19,6 @@ ADMGameModeField::ADMGameModeField()
 void ADMGameModeField::StartPlay()
 {
 	Super::StartPlay();
+
+	DMUIManager::Get()->OpenPanel(EDMPanelKind::Main);
 }

@@ -4,30 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "../PreviewStudio/DMPreviewStruct.h"
+#include "Base/DMBaseManager.h"
 
 /**
  * 
  */
-class THIRDPERSON_API DMPreviewManager
+class THIRDPERSON_API DMPreviewManager : public DMBaseManager<DMPreviewManager>
 {
-private:
-	static DMPreviewManager* Instance;
-public:
-	static DMPreviewManager* Get()
-	{
-		if (Instance == nullptr)
-			Instance = new DMPreviewManager;
-		return Instance;
-	}
-	static void Release()
-	{
-		delete Instance;
-	}
-
-public:
-	DMPreviewManager();
-	~DMPreviewManager();
-
 private:
 	TMap<class UDMUISlot_Preview*, FDMPreviewInfo>	PreviewList;
 	TMap<FString, FDMPreviewInfo>	AsyncPreviewList;
@@ -36,6 +19,9 @@ private:
 	void ReleaseData();
 
 public:
+	DMPreviewManager();
+	~DMPreviewManager();
+
 // 	virtual void OnInitialize()			override;
 // 	virtual void OnShutdown()			override;
 // 	virtual void OnLoadLevelStart()		override;

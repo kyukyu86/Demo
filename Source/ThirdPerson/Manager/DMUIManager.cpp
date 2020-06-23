@@ -5,6 +5,7 @@
 #include "DMAsyncLoadManager.h"
 #include "DMPathManager.h"
 
+
 DMUIManager::DMUIManager()
 {
 }
@@ -36,6 +37,13 @@ void DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 	});
 	FString strAsyncKey = DMAsyncLoadManager::Get()->AsyncCreateWidget(DMPathManager::Get()->GetUIPanelPath(InWidgetInfo.PanelKind), AsyncComplete);
 	AsyncList.Add(strAsyncKey, InWidgetInfo);
+}
+
+void DMUIManager::OpenPanel(const EDMPanelKind IN InKind)
+{
+	FDMOpenWidgetInfo TempInfo;
+	TempInfo.PanelKind = InKind;
+	OpenPanel(TempInfo);
 }
 
 void DMUIManager::ClosePanel(const EDMPanelKind IN InPanelKind)

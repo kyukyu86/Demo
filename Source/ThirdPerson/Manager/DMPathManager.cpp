@@ -5,8 +5,6 @@
 #include "../Util/DMEnumUtil.h"
 
 
-DMPathManager* DMPathManager::Instance = nullptr;
-
 DMPathManager::DMPathManager()
 {
 	AddPath(EDMPath::UIPanel, "/Game/StarterContent/Blueprints/Assets/UI/Panel/");

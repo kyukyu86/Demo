@@ -9,7 +9,6 @@
 #include "../GameInstance/DMGameInstance.h"
 
 
-DMAsyncLoadManager* DMAsyncLoadManager::Instance = nullptr;
 uint64 FDMAsyncLoadTaskParam::IncrementIndex = 0;
 
 FString FDMAsyncLoadTaskParam::GetHashKey(const FString& InHash)

@@ -6,6 +6,7 @@
 #include "DMAsyncLoadManager.h"
 #include "../UI/Base/DMUIPanel.h"
 #include "../Enum/DMUIEnum.h"
+#include "Base/DMBaseManager.h"
 
 
 struct FDMOpenWidgetInfo
@@ -21,7 +22,7 @@ struct FDMPanelData
 };
 
 
-class THIRDPERSON_API DMUIManager
+class THIRDPERSON_API DMUIManager : public DMBaseManager<DMUIManager>
 {
 private:
 	TMap<FString, FDMOpenWidgetInfo> AsyncList;
@@ -32,5 +33,6 @@ public:
 	~DMUIManager();
 
 	void OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo);
-	void ClosePanel(const EDMPanelKind IN InPanelKind);
+	void OpenPanel(const EDMPanelKind IN InKind);
+	void ClosePanel(const EDMPanelKind IN InKind);
 };

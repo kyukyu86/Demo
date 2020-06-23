@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "Engine/StreamableManager.h"
 #include "Containers/List.h"
+#include "Base/DMBaseManager.h"
 
 DECLARE_DELEGATE_TwoParams(FDMCompleteAsyncLoad, UObject*, FString);
 
@@ -48,33 +49,28 @@ public:
 /**
  *
  */
-class THIRDPERSON_API DMAsyncLoadManager
+class THIRDPERSON_API DMAsyncLoadManager : public DMBaseManager<DMAsyncLoadManager>
 {
 private:
-	static DMAsyncLoadManager* Instance;
-public:
-	static DMAsyncLoadManager* Get()
-	{
-		if (Instance == nullptr)
-			Instance = new DMAsyncLoadManager;
-		return Instance;
-	}
-	static void Release()
-	{
-		delete Instance;
-	}
-
+	TMap<FString, TDoubleLinkedList<FDMAsyncLoadTaskParam*>*>	Tasks;
 
 private:
+	TSharedPtr<FStreamableHandle> RequestAsyncLoad(const FString& InFullPath);
+	FString PathToHash(const FString& InValue);
+	void OnCompleteAsyncLoad();
+	FDMAsyncLoadTaskParam* AddAsyncLoadTaskParam(TSharedRef<FStreamableHandle> InHandle, const FString& InFullPath, EDMAsyncLoadObjectType InObjectType, FDMCompleteAsyncLoad InCallback);
+	void RemoveAsyncLoadTaskParam(FDMAsyncLoadTaskParam* InParam);
+	void RemoveAll();
+
+public:
 	DMAsyncLoadManager();
 	~DMAsyncLoadManager();
 
-public:
 // 	virtual void OnInitialize()			override;
 // 	virtual void OnShutdown()			override;
 // 	virtual void OnLoadLevelStart()		override;
-// 	virtual void OnLoadLevelComplete() override;
-// 	virtual void OnRenderStart() override;
+// 	virtual void OnLoadLevelComplete()	override;
+// 	virtual void OnRenderStart()		override;
 
 	FString AsyncSpawnActor(const FString& InFullPath, FDMCompleteAsyncLoad InCompleteDelegate);
 	FString AsyncLoadAsset(const FString& InFullPath, FDMCompleteAsyncLoad InCompleteDelegate);
@@ -83,22 +79,6 @@ public:
 	bool CancelAsyncLoad(const FString& InHash);
 
 	static bool IsLoadCompleteTasks(TMap<FString, UObject*>& InTasks);
-
-private:
-
-	TSharedPtr<FStreamableHandle> RequestAsyncLoad(const FString& InFullPath);
-
-	FString PathToHash(const FString& InValue);
-
-	void OnCompleteAsyncLoad();
-
-	FDMAsyncLoadTaskParam* AddAsyncLoadTaskParam(TSharedRef<FStreamableHandle> InHandle, const FString& InFullPath, EDMAsyncLoadObjectType InObjectType, FDMCompleteAsyncLoad InCallback);
-	void RemoveAsyncLoadTaskParam(FDMAsyncLoadTaskParam* InParam);
-	void RemoveAll();
-
-private:
-
-	TMap<FString, TDoubleLinkedList<FDMAsyncLoadTaskParam*>*>	Tasks;
 
 };
 

@@ -6,8 +6,6 @@
 #include "../UI/Slot/DMUISlot_Preview.h"
 
 
-DMPreviewManager* DMPreviewManager::Instance = nullptr;
-
 DMPreviewManager::DMPreviewManager()
 {
 }

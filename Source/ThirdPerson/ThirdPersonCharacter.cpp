@@ -80,7 +80,7 @@ void AThirdPersonCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 void AThirdPersonCharacter::BuildComponents()
 {
-	AddComponent()
+	//AddComponent()
 }
 
 void AThirdPersonCharacter::OnResetVR()

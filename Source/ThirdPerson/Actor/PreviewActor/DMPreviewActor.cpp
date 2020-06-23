@@ -99,7 +99,7 @@ void ADMPreviewActor::SetMesh(const EDMPreviewType InType, UObject* InObject, cl
 		SetStaticMesh(CastedObject);
 	}
 	break;
-	case EDMPreviewType::Dynamic:
+	case EDMPreviewType::Skeletal:
 	{
 		USkeletalMesh* CastedObject = Cast<USkeletalMesh>(InObject);
 		if (CastedObject == nullptr)

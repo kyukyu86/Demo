@@ -5,16 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "../../PreviewStudio/DMPreviewStruct.h"
 #include "DMPreviewActor.generated.h"
 
-
-UENUM(BlueprintType)
-enum class EDMPreviewType : uint8
-{
-	Static,
-	Dynamic,
-	CustomActor,
-};
 
 
 UCLASS()
@@ -27,9 +20,12 @@ protected:
 	USceneComponent*			MeshParent		= nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneCaptureComponent2D*	SceneCapture	= nullptr;
+
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FVector		DesiredExtendMesh	= FVector(30.f, 30.f, 30.f);
 	FVector		CurrentExtendMesh	= FVector::ZeroVector;
+
 	bool		bRotate				= false;
 	FVector		InputStartLocation	= FVector::ZeroVector;
 

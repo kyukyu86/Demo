@@ -17,5 +17,5 @@ ADMGameModeField::ADMGameModeField()
 
 void ADMGameModeField::StartPlay()
 {
-
+	Super::StartPlay();
 }

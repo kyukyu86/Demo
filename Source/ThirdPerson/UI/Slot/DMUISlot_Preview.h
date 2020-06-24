@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../Base/DMUISlot.h"
+#include "../../PreviewStudio/DMPreviewStruct.h"
 #include "DMUISlot_Preview.generated.h"
 
 /**
@@ -14,4 +15,16 @@ class THIRDPERSON_API UDMUISlot_Preview : public UDMUISlot
 {
 	GENERATED_BODY()
 	
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		FDMPreviewBaseInfo	PreviewBaseInfo;
+
+public:
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	FORCEINLINE FDMPreviewBaseInfo& GetPreviewBaseInfo() { return PreviewBaseInfo; }
+
+	void OnShow();
 };

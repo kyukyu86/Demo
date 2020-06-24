@@ -2,6 +2,7 @@
 
 #pragma once
 
+UENUM(BlueprintType)
 enum class EDMPanelKind : uint8
 {
 	None,
@@ -9,6 +10,7 @@ enum class EDMPanelKind : uint8
 	Main,
 };
 
+UENUM(BlueprintType)
 enum class EDMSlotKind : uint8
 {
 	None,

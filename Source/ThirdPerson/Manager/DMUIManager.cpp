@@ -26,6 +26,8 @@ void DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 		if (CastedPanel == nullptr)
 			return;
 
+		CastedPanel->AddToViewport();
+
 		FDMPanelData NewPanelData;
 		NewPanelData.PanelKind = FoundInfo->PanelKind;
 		NewPanelData.PanelWidget = CastedPanel;
@@ -48,5 +50,24 @@ void DMUIManager::OpenPanel(const EDMPanelKind IN InKind)
 
 void DMUIManager::ClosePanel(const EDMPanelKind IN InPanelKind)
 {
+	// Check Async List
+	for (auto& AsyncElement : AsyncList)
+	{
+		if (AsyncElement.Value.PanelKind == InPanelKind)
+		{
+			DMAsyncLoadManager::Get()->CancelAsyncLoad(AsyncElement.Key);
+			AsyncList.Remove(AsyncElement.Key);
+			return;
+		}
+	}
 
+	// Check Panel List
+	FDMPanelData* FoundData = PanelList.Find(InPanelKind);
+	if (FoundData == nullptr)
+		return;
+
+	if (FoundData->PanelWidget->IsValidLowLevel())
+	{
+		FoundData->PanelWidget->RemoveFromViewport();
+	}
 }

@@ -7,6 +7,9 @@ enum class EDMPath : uint8
 {
 	UI,
 
+	Actor,
+	Preview,
+
 	UIPanel,
 	UISlot,
 };

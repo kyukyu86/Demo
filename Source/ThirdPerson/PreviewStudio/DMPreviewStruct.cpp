@@ -10,7 +10,7 @@ void FDMPreviewInfo::SetPreviewWidget(class UDMUISlot_Preview* IN InWidget)
 		return;
 
 	PreviewWidget = InWidget;
-//	BaseInfo = InWidget->GetPreviewBaseInfo();
+	BaseInfo = InWidget->GetPreviewBaseInfo();
 }
 
 void FDMPreviewInfo::Release(const bool IN InParentDestroy /*= false*/)

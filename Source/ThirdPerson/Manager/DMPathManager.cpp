@@ -9,6 +9,8 @@ DMPathManager::DMPathManager()
 {
 	AddPath(EDMPath::UIPanel, "/Game/StarterContent/Blueprints/Assets/UI/Panel/");
 	AddPath(EDMPath::UISlot, "/Game/StarterContent/Blueprints/Assets/UI/Slot/");
+	AddPath(EDMPath::Preview, "/Game/StarterContent/Blueprints/Assets/PreviewStudio/");
+	AddPath(EDMPath::Actor, "/Game/StarterContent/Blueprints/Assets/Actor/");
 }
 
 DMPathManager::~DMPathManager()

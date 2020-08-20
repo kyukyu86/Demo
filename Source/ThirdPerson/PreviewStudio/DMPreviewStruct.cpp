@@ -10,7 +10,7 @@ void FDMPreviewInfo::SetPreviewWidget(class UDMUISlot_Preview* IN InWidget)
 		return;
 
 	PreviewWidget = InWidget;
-	BaseInfo = InWidget->GetPreviewBaseInfo();
+	PreviewData = InWidget->GetPreviewData();
 }
 
 void FDMPreviewInfo::Release(const bool IN InParentDestroy /*= false*/)
@@ -19,9 +19,10 @@ void FDMPreviewInfo::Release(const bool IN InParentDestroy /*= false*/)
 	BPPath = "";
 	Anim = nullptr;
 	PreviewWidget = nullptr;
-	
+
 	if (PreviewStudio->IsValidLowLevel())
 	{
+		PreviewStudio->Release();
 		PreviewStudio->Destroy();
 	}
 	PreviewStudio = nullptr;
@@ -32,5 +33,15 @@ void FDMPreviewInfo::Release(const bool IN InParentDestroy /*= false*/)
 	}
 	PreviewExitDelegate.Unbind();
 
-	BaseInfo = FDMPreviewBaseInfo();
+	PreviewData = FDMPreviewDataWidget();
+}
+
+void FDMPreviewInfo::ModifyBaseData(struct FDMPreviewDataBase& IN InPreviewTablData)
+{
+	PreviewData = InPreviewTablData;
+}
+
+void FDMPreviewCustomActorData::AddItem(const int32 IN InTID)
+{
+	// CustomActor 용 의상정보 등 저장
 }

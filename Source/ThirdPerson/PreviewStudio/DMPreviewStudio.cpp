@@ -70,6 +70,7 @@ ADMPreviewStudio::ADMPreviewStudio()
 				SceneCapture->FOVAngle = 45.f;
 				FString TargetTexturePath = TEXT("/Game/Asset/BluePrint/Character/Preview/RT2D_Preview");
 				SceneCapture->TextureTarget = LoadObject<UTextureRenderTarget2D>(NULL, *TargetTexturePath);
+				SceneCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 
 				SrcZoomRelativeLoc = SceneCapture->GetRelativeLocation();
 			}
@@ -193,7 +194,7 @@ void ADMPreviewStudio::Tick(float DeltaTime)
 
 bool ADMPreviewStudio::OnInputStart(const FVector2D InCurrentLocation)
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseRotate == false)
+	if (PreviewInfo.GetPreviewData().UseRotate == false)
 		return false;
 
 	bRotate = true;
@@ -204,7 +205,7 @@ bool ADMPreviewStudio::OnInputStart(const FVector2D InCurrentLocation)
 
 bool ADMPreviewStudio::OnInputMove(const FVector2D InCurrentLocation)
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseRotate == false)
+	if (PreviewInfo.GetPreviewData().UseRotate == false)
 		return false;
 
 	if (bRotate == false)
@@ -227,7 +228,7 @@ bool ADMPreviewStudio::OnInputMove(const FVector2D InCurrentLocation)
 
 bool ADMPreviewStudio::OnInputEnd()
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseRotate == false)
+	if (PreviewInfo.GetPreviewData().UseRotate == false)
 		return false;
 
 	if (bRotate == false)
@@ -241,7 +242,7 @@ bool ADMPreviewStudio::OnInputEnd()
 
 bool ADMPreviewStudio::OnRotateStart(const bool InLeft)
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseRotate == false)
+	if (PreviewInfo.GetPreviewData().UseRotate == false)
 		return false;
 
 	bRotate = true;
@@ -253,7 +254,7 @@ bool ADMPreviewStudio::OnRotateStart(const bool InLeft)
 
 bool ADMPreviewStudio::OnRotateEnd()
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseRotate == false)
+	if (PreviewInfo.GetPreviewData().UseRotate == false)
 		return false;
 
 	if (bRotate == false)
@@ -267,7 +268,7 @@ bool ADMPreviewStudio::OnRotateEnd()
 
 bool ADMPreviewStudio::OnZoomIn()
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseZoom == false)
+	if (PreviewInfo.GetPreviewData().UseZoom == false)
 		return false;
 
 // 	if (bZoomIn == false)
@@ -283,7 +284,7 @@ bool ADMPreviewStudio::OnZoomIn()
 
 bool ADMPreviewStudio::OnZoomOut()
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseZoom == false)
+	if (PreviewInfo.GetPreviewData().UseZoom == false)
 		return false;
 
 // 	if (bZoomOut == false)
@@ -299,7 +300,7 @@ bool ADMPreviewStudio::OnZoomOut()
 
 bool ADMPreviewStudio::OnZoomEnd()
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseZoom == false)
+	if (PreviewInfo.GetPreviewData().UseZoom == false)
 		return false;
 
 	if (bZoomIn != false && bZoomOut != false)
@@ -324,7 +325,7 @@ void ADMPreviewStudio::SetPreviewTarget(const FDMPreviewInfo& IN InPreivewInfo)
 		// Target Async Lambda
 		auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
 		{
-			strAsyncKey = "";
+			strAsyncKey.Empty();
 
 			UStaticMesh* CastedObject = Cast<UStaticMesh>(InObject);
 			if (CastedObject == nullptr)
@@ -342,7 +343,7 @@ void ADMPreviewStudio::SetPreviewTarget(const FDMPreviewInfo& IN InPreivewInfo)
 		// Target Async Lambda
 		auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
 		{
-			strAsyncKey = "";
+			strAsyncKey.Empty();
 
 			USkeletalMesh* CastedObject = Cast<USkeletalMesh>(InObject);
 			if (CastedObject == nullptr)
@@ -360,7 +361,7 @@ void ADMPreviewStudio::SetPreviewTarget(const FDMPreviewInfo& IN InPreivewInfo)
 		// Target Async Lambda
  		auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
  		{
- 			strAsyncKey = "";
+			strAsyncKey.Empty();
  
  			SetDefaultActor((UClass*)InObject, nullptr);
  		});
@@ -376,7 +377,7 @@ void ADMPreviewStudio::SetPreviewTarget(const FDMPreviewInfo& IN InPreivewInfo)
 		// Target Async Lambda
  		auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
  		{
- 			strAsyncKey = "";
+			strAsyncKey.Empty();
  
  			AActor* CastedObject = Cast<AActor>(InObject);
  			if (CastedObject == nullptr)
@@ -396,7 +397,7 @@ void ADMPreviewStudio::OnPreviewTargetSetted()
 {
 	if (SceneCapture)
 	{
-		FVector2D CustomSceneSize = PreviewInfo.GetPreviewBaseInfo().SceneSize;
+		FVector2D CustomSceneSize = PreviewInfo.GetPreviewData().SceneSize;
 
 		// Set
 		if (SceneCapture->TextureTarget->SizeX != CustomSceneSize.X || SceneCapture->TextureTarget->SizeY != CustomSceneSize.Y)
@@ -416,13 +417,17 @@ void ADMPreviewStudio::OnPreviewTargetSetted()
 	}
 
 	// Rotate Init
-	if (PreviewInfo.GetPreviewBaseInfo().ActorRotate.IsZero() == false)
+	UMeshComponent* MeshComponent = GetMeshComponent();
+	if (MeshComponent)
 	{
-		UMeshComponent* MeshComponent = GetMeshComponent();
-		if (MeshComponent == nullptr)
-			return;
-
-		StaticMeshComponent->AddWorldRotation(PreviewInfo.GetPreviewBaseInfo().ActorRotate);
+		if (PreviewInfo.GetPreviewData().ActorLocationOffset.IsZero() == false)
+		{
+			MeshComponent->AddWorldOffset(PreviewInfo.GetPreviewData().ActorLocationOffset);
+		}
+		if (PreviewInfo.GetPreviewData().ActorRotationOffset.IsZero() == false)
+		{
+			MeshComponent->AddWorldRotation(PreviewInfo.GetPreviewData().ActorRotationOffset);
+		}
 	}
 }
 
@@ -503,6 +508,13 @@ void ADMPreviewStudio::SetCustomActor(class AActor* InActor, class UAnimationAss
 	SceneCapture->ShowOnlyActors.Add(CustomActor);
 	SceneCapture->UpdateContent();
 	SceneCapture->CaptureScene();
+
+	// + 외형정보 설정
+
+	const FDMPreviewCustomActorData& CustomActorData = PreviewInfo.GetPreviewCustomActorData();
+
+	// 모두 설정완료 후 완료됨 알림
+	PreviewInfo.PreviewLoadCompletedDelegate.ExecuteIfBound(CustomActor);
 }
 
 void ADMPreviewStudio::SetDefaultActor(class UClass* InActorClass, class UAnimationAsset* InAnim)
@@ -516,10 +528,15 @@ void ADMPreviewStudio::SetDefaultActor(class UClass* InActorClass, class UAnimat
 	if (pChildActor == nullptr)
 		return;
 
-	// Rotate
-	if (PreviewInfo.GetPreviewBaseInfo().ActorRotate.IsZero() == false)
+	// Location Offset
+	if (PreviewInfo.GetPreviewData().ActorLocationOffset.IsZero() == false)
 	{
-		ChildActorComp->SetRelativeRotation(PreviewInfo.GetPreviewBaseInfo().ActorRotate);
+		ChildActorComp->SetRelativeLocation(PreviewInfo.GetPreviewData().ActorLocationOffset);
+	}
+	// Rotation Offset
+	if (PreviewInfo.GetPreviewData().ActorRotationOffset.IsZero() == false)
+	{
+		ChildActorComp->SetRelativeRotation(PreviewInfo.GetPreviewData().ActorRotationOffset);
 	}
 
 	TArray<USkeletalMeshComponent*> SkeletalMeshComps;
@@ -554,12 +571,17 @@ void ADMPreviewStudio::SetDefaultActor(class UClass* InActorClass, class UAnimat
 	SceneCapture->CaptureScene();
 }
 
-AActor* ADMPreviewStudio::GetCustomActor()
+AActor* ADMPreviewStudio::GetDefaultActor()
 {
 	if (ChildActorComp == nullptr)
 		return nullptr;
 
 	return ChildActorComp->GetChildActor();
+}
+
+AActor* ADMPreviewStudio::GetCustomActor()
+{
+	return CustomActor;
 }
 
 void ADMPreviewStudio::UpdateScale()
@@ -601,7 +623,7 @@ void ADMPreviewStudio::UpdateScale()
 
 void ADMPreviewStudio::UpdateRotate(const float IN InDeltaTime)
 {
-	if (PreviewInfo.GetPreviewBaseInfo().bUseRotate == false)
+	if (PreviewInfo.GetPreviewData().UseRotate == false)
 		return;
 
 	if (bAuto == false)
@@ -617,11 +639,11 @@ void ADMPreviewStudio::UpdateRotate(const float IN InDeltaTime)
 	FRotator AddRotator = FRotator::ZeroRotator;
 	if (bLeft)
 	{
-		AddRotator.Yaw = 1.f;
+		AddRotator.Yaw = PreviewInfo.GetPreviewData().ActorRotationValue;
 	}
 	else
 	{
-		AddRotator.Yaw = -1.f;
+		AddRotator.Yaw = PreviewInfo.GetPreviewData().ActorRotationValue * -1.f;
 	}
 
 	// [ 2020-6-10 : kyu ] MeshComponent가 아닌 Parent로 써봄
@@ -632,7 +654,7 @@ void ADMPreviewStudio::UpdateZoom(const float IN InDeltaTime)
 {
 	if (bZoomIn)
 	{
-		if (AccumulatedZoom >= PreviewInfo.GetPreviewBaseInfo().ZoomMax)
+		if (AccumulatedZoom >= PreviewInfo.GetPreviewData().ZoomMax)
 			return;
 
 		AccumulatedZoom += 1.f;
@@ -664,9 +686,9 @@ void ADMPreviewStudio::UpdateZoom(const float IN InDeltaTime)
 
 FVector ADMPreviewStudio::GetSrcCameraOffset()
 {
-	FVector vResult = SrcZoomRelativeLoc + PreviewInfo.GetPreviewBaseInfo().CameraOffset;
+	FVector vResult = SrcZoomRelativeLoc + PreviewInfo.GetPreviewData().CameraOffset;
 
-	FName CameraOffsetPivotSocket = PreviewInfo.GetPreviewBaseInfo().CameraOffsetPivotSocket;
+	FName CameraOffsetPivotSocket = PreviewInfo.GetPreviewData().CameraOffsetPivotSocket;
 	if (CameraOffsetPivotSocket.IsNone() == false)
 	{
 		USkeletalMeshComponent* CastedMeshComponent = Cast<USkeletalMeshComponent>(GetMeshComponent());
@@ -688,16 +710,16 @@ FVector ADMPreviewStudio::GetZoomDirection()
 // 		return ZoomDirection;
 
 	FVector vZoomDirection = FVector::ZeroVector;
-	if (PreviewInfo.GetPreviewBaseInfo().ZoomSocket.IsNone())
+	if (PreviewInfo.GetPreviewData().ZoomSocket.IsNone())
 	{
 		vZoomDirection = SceneCapture->GetForwardVector().GetSafeNormal();
 	}
 	else
 	{
 		UMeshComponent* MeshComponent = GetMeshComponent();
-		if (MeshComponent->DoesSocketExist(PreviewInfo.GetPreviewBaseInfo().ZoomSocket))
+		if (MeshComponent->DoesSocketExist(PreviewInfo.GetPreviewData().ZoomSocket))
 		{
-			FVector vSocketLocation = MeshComponent->GetSocketLocation(PreviewInfo.GetPreviewBaseInfo().ZoomSocket);
+			FVector vSocketLocation = MeshComponent->GetSocketLocation(PreviewInfo.GetPreviewData().ZoomSocket);
 			FVector vSceneCaptureCompLoc = SceneCapture->GetComponentLocation();
 			vZoomDirection = vSocketLocation - vSceneCaptureCompLoc;
 			vZoomDirection.Normalize();
@@ -783,5 +805,26 @@ class UMeshComponent* ADMPreviewStudio::GetMeshComponent()
 	}
 
 	return nullptr;
+}
+
+void ADMPreviewStudio::Release()
+{
+	if (strAsyncKey.IsEmpty() == false)
+	{
+		DMAsyncLoadManager::Get()->CancelAsyncLoad(strAsyncKey);
+	}
+	if (CustomActor != nullptr && CustomActor->IsValidLowLevel())
+	{
+		CustomActor->RemoveFromRoot();
+
+// 		AWRCharacter* CastedCustomActor = Cast<AWRCharacter>(CustomActor);
+// 		if (CastedCustomActor)
+// 		{
+// 			CastedCustomActor->OnPreDestroy();
+// 		}
+
+		CustomActor->Destroy();
+		CustomActor = nullptr;
+	}
 }
 

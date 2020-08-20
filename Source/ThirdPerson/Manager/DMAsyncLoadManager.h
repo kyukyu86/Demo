@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "Engine/StreamableManager.h"
 #include "Containers/List.h"
-#include "Base/DMBaseManager.h"
+#include "Singleton/DMSingleton.h"
 
 DECLARE_DELEGATE_TwoParams(FDMCompleteAsyncLoad, UObject*, FString);
 
@@ -49,7 +49,7 @@ public:
 /**
  *
  */
-class THIRDPERSON_API DMAsyncLoadManager : public DMBaseManager<DMAsyncLoadManager>
+class THIRDPERSON_API DMAsyncLoadManager : public DMSingleton<DMAsyncLoadManager>
 {
 private:
 	TMap<FString, TDoubleLinkedList<FDMAsyncLoadTaskParam*>*>	Tasks;
@@ -64,13 +64,10 @@ private:
 
 public:
 	DMAsyncLoadManager();
-	~DMAsyncLoadManager();
+	virtual ~DMAsyncLoadManager();
 
-// 	virtual void OnInitialize()			override;
-// 	virtual void OnShutdown()			override;
-// 	virtual void OnLoadLevelStart()		override;
-// 	virtual void OnLoadLevelComplete()	override;
-// 	virtual void OnRenderStart()		override;
+	virtual void OnInit() override;
+	virtual void OnShutdown() override;
 
 	FString AsyncSpawnActor(const FString& InFullPath, FDMCompleteAsyncLoad InCompleteDelegate);
 	FString AsyncLoadAsset(const FString& InFullPath, FDMCompleteAsyncLoad InCompleteDelegate);

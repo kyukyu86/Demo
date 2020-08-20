@@ -2,6 +2,7 @@
 
 
 #include "DMGameInstance.h"
+#include "../Manager/Singleton/DMSingletonManager.h"
 
 UDMGameInstance* UDMGameInstance::Instance = nullptr;
 
@@ -9,12 +10,13 @@ void UDMGameInstance::Init()
 {
 	Super::Init();
 
+	DMSingletonManager::Start();
 	Instance = this;
 }
 
 void UDMGameInstance::Shutdown()
 {
-
+	DMSingletonManager::ShutDown();
 
 
 	Super::Shutdown();

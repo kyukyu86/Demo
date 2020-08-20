@@ -87,6 +87,16 @@ DMAsyncLoadManager::~DMAsyncLoadManager()
 
 }
 
+void DMAsyncLoadManager::OnInit()
+{
+
+}
+
+void DMAsyncLoadManager::OnShutdown()
+{
+
+}
+
 FString DMAsyncLoadManager::AsyncSpawnActor(const FString& InFullPath, FDMCompleteAsyncLoad InCompleteDelegate)
 {
 	FString ResolvedFullPath = DMActorUtil::ResolvePath(InFullPath);

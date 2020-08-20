@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "DMUIManager.h"
 #include "../Enum/DMPathEnum.h"
-#include "Base/DMBaseManager.h"
+#include "Singleton/DMSingleton.h"
 
 
 
-class THIRDPERSON_API DMPathManager : public DMBaseManager<DMPathManager>
+class THIRDPERSON_API DMPathManager : public DMSingleton<DMPathManager>
 {
 private:
 	TMap<EDMPath, FString> PathList;
@@ -19,7 +19,10 @@ private:
 
 public:
 	DMPathManager();
-	~DMPathManager();
+	virtual ~DMPathManager();
+
+	virtual void OnInit() override;
+	virtual void OnShutdown() override;
 
 	FString GetPath(const EDMPath IN InType);
 	FString GetUIPanelPath(const EDMPanelKind IN InKind);

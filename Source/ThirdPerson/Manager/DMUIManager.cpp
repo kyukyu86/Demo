@@ -8,14 +8,41 @@
 
 DMUIManager::DMUIManager()
 {
+
 }
 
 DMUIManager::~DMUIManager()
 {
+	
+}
+
+void DMUIManager::OnInit()
+{
+
+}
+
+void DMUIManager::OnShutdown()
+{
+	for (auto& Each : PanelList)
+	{
+		FDMPanelData& PanelData = Each.Value;
+		if (PanelData.PanelWidget->IsValidLowLevel())
+		{
+			PanelData.PanelWidget->RemoveFromViewport();
+//			delete PanelData.PanelWidget;
+		}
+	}
+	PanelList.Empty();
 }
 
 void DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 {
+	if (IsAsyncLoadingPanel(InWidgetInfo.PanelKind))
+		return;
+
+	if (IsOpenedPanel(InWidgetInfo.PanelKind))
+		return;
+
 	auto AsyncComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
 	{
 		FDMOpenWidgetInfo* FoundInfo = AsyncList.Find(InKey);
@@ -33,6 +60,7 @@ void DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 		NewPanelData.PanelWidget = CastedPanel;
 		PanelList.Add(FoundInfo->PanelKind, NewPanelData);
 
+		// Complete Delegate
 		FoundInfo->CompleteDelegate.ExecuteIfBound(InObject, InKey);
 
 		AsyncList.Remove(InKey);
@@ -42,7 +70,7 @@ void DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 }
 
 void DMUIManager::OpenPanel(const EDMPanelKind IN InKind)
-{
+{	
 	FDMOpenWidgetInfo TempInfo;
 	TempInfo.PanelKind = InKind;
 	OpenPanel(TempInfo);
@@ -70,4 +98,23 @@ void DMUIManager::ClosePanel(const EDMPanelKind IN InPanelKind)
 	{
 		FoundData->PanelWidget->RemoveFromViewport();
 	}
+}
+
+bool DMUIManager::IsOpenedPanel(const EDMPanelKind IN InKind)
+{
+	if (PanelList.Find(InKind) == nullptr)
+		return false;
+
+	return true;
+}
+
+bool DMUIManager::IsAsyncLoadingPanel(const EDMPanelKind IN InKind)
+{
+	for (auto Data : AsyncList)
+	{
+		if (Data.Value.PanelKind == InKind)
+			return true;
+	}
+
+	return false;
 }

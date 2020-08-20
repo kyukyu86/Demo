@@ -32,24 +32,24 @@ protected:
 
 protected:
 	FDMPreviewInfo	PreviewInfo;
-	FString			strAsyncKey = "";
+	FString			strAsyncKey		= "";
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		FVector		DesiredExtendMesh = FVector(30.f, 30.f, 30.f);
-	FVector		CurrentExtendMesh = FVector::ZeroVector;
+	FVector		DesiredExtendMesh	= FVector(30.f, 30.f, 30.f);
+	FVector		CurrentExtendMesh	= FVector::ZeroVector;
 
-	bool		bRotate = false;
-	bool		bAuto = false;
-	bool		bLeft = false;
-	FVector2D	InputStartLocation = FVector2D::ZeroVector;
+	bool		bRotate				= false;
+	bool		bAuto				= false;
+	bool		bLeft				= false;
+	FVector2D	InputStartLocation	= FVector2D::ZeroVector;
 
-	bool		bZoomIn = false;
-	bool		bZoomOut = false;
-	FVector		SrcZoomRelativeLoc = FVector::ZeroVector;
-	FVector		ZoomDirection = FVector::ZeroVector;
-	float		AccumulatedZoom = 0.f;
+	bool		bZoomIn				= false;
+	bool		bZoomOut			= false;
+	FVector		SrcZoomRelativeLoc	= FVector::ZeroVector;
+	FVector		ZoomDirection		= FVector::ZeroVector;
+	float		AccumulatedZoom		= 0.f;
 
-	AActor*		CustomActor = nullptr;
+	AActor*		CustomActor			= nullptr;
 
 public:
 	ADMPreviewStudio();
@@ -74,6 +74,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	FORCEINLINE void SetDesiredExtendSize(const FVector IN InSize) { DesiredExtendMesh = InSize; }
+
+	void Release();
 
 	//========== Input
 
@@ -100,14 +102,11 @@ public:
 
 	void SetPreviewTarget(const FDMPreviewInfo& IN InPreivewInfo);
 
-	UFUNCTION(BlueprintCallable)
-		virtual void SetStaticMesh(class UStaticMesh* InMesh);
-	UFUNCTION(BlueprintCallable)
-		virtual void SetSkeletalMesh(class USkeletalMesh* InMesh, class UAnimationAsset* InAnim);
-	UFUNCTION(BlueprintCallable)
-		virtual void SetDefaultActor(class UClass* InActorClass, class UAnimationAsset* InAnim);
-	UFUNCTION(BlueprintCallable)
-		virtual void SetCustomActor(class AActor* InActor, class UAnimationAsset* InAnim);
+	virtual void SetStaticMesh(class UStaticMesh* InMesh);
+	virtual void SetSkeletalMesh(class USkeletalMesh* InMesh, class UAnimationAsset* InAnim);
+	virtual void SetDefaultActor(class UClass* InActorClass, class UAnimationAsset* InAnim);
+	virtual void SetCustomActor(class AActor* InActor, class UAnimationAsset* InAnim);
 
+	AActor* GetDefaultActor();
 	AActor* GetCustomActor();
 };

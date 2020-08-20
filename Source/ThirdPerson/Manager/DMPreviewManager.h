@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "../PreviewStudio/DMPreviewStruct.h"
-#include "Base/DMBaseManager.h"
+#include "Singleton/DMSingleton.h"
 
 /**
  * 
  */
-class THIRDPERSON_API DMPreviewManager : public DMBaseManager<DMPreviewManager>
+class THIRDPERSON_API DMPreviewManager : public DMSingleton<DMPreviewManager>
 {
 private:
 	TMap<class UDMUISlot_Preview*, FDMPreviewInfo>	PreviewList;
@@ -20,17 +20,15 @@ private:
 
 public:
 	DMPreviewManager();
-	~DMPreviewManager();
+	virtual ~DMPreviewManager();
 
-// 	virtual void OnInitialize()			override;
-// 	virtual void OnShutdown()			override;
-// 	virtual void OnLoadLevelStart()		override;
-// 	virtual void OnLoadLevelComplete() 	override;
-// 	virtual void OnRenderStart() 		override;
+	virtual void OnInit() override;
+	virtual void OnShutdown() override;
 
 	void SetPreview(FDMPreviewInfo& IN InPreviewInfo);
 
 	class ADMPreviewStudio* GetPreviewStudio(class UDMUISlot_Preview* IN InPreviewWidget);
 
 	void ReleasePreview(class UDMUISlot_Preview* IN InPreviewWidget, const bool IN InParentDestroy = false);
+	bool ReleasePreview(const FString IN InAsyncKey, const bool IN InParentDestroy = false);
 };

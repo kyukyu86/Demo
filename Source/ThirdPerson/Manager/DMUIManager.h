@@ -6,7 +6,7 @@
 #include "DMAsyncLoadManager.h"
 #include "../UI/Base/DMUIPanel.h"
 #include "../Enum/DMUIEnum.h"
-#include "Base/DMBaseManager.h"
+#include "Singleton/DMSingleton.h"
 
 
 struct FDMOpenWidgetInfo
@@ -22,7 +22,7 @@ struct FDMPanelData
 };
 
 
-class THIRDPERSON_API DMUIManager : public DMBaseManager<DMUIManager>
+class THIRDPERSON_API DMUIManager : public DMSingleton<DMUIManager>
 {
 private:
 	TMap<FString, FDMOpenWidgetInfo> AsyncList;
@@ -30,9 +30,14 @@ private:
 
 public:
 	DMUIManager();
-	~DMUIManager();
+	virtual ~DMUIManager();
+
+	virtual void OnInit() override;
+	virtual void OnShutdown() override;
 
 	void OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo);
 	void OpenPanel(const EDMPanelKind IN InKind);
 	void ClosePanel(const EDMPanelKind IN InKind);
+	bool IsOpenedPanel(const EDMPanelKind IN InKind);
+	bool IsAsyncLoadingPanel(const EDMPanelKind IN InKind);
 };

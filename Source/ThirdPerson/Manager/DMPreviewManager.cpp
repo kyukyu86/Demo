@@ -16,14 +16,29 @@ DMPreviewManager::~DMPreviewManager()
 {
 }
 
+void DMPreviewManager::OnInit()
+{
+
+}
+
+void DMPreviewManager::OnShutdown()
+{
+	ReleaseData();
+}
+
 void DMPreviewManager::ReleaseData()
 {
+	for (auto& EachAsync : AsyncPreviewList)
+	{
+		DMAsyncLoadManager::Get()->CancelAsyncLoad(EachAsync.Key);
+	}
+	AsyncPreviewList.Empty();
+
 	for (auto& Element : PreviewList)
 	{
 		FDMPreviewInfo& PreviewInfo = Element.Value;
 		PreviewInfo.Release(true);
 	}
-	AsyncPreviewList.Empty();
 }
 
 void DMPreviewManager::SetPreview(FDMPreviewInfo& IN InPreviewInfo)
@@ -72,9 +87,31 @@ ADMPreviewStudio* DMPreviewManager::GetPreviewStudio(class UDMUISlot_Preview* IN
 
 void DMPreviewManager::ReleasePreview(class UDMUISlot_Preview* IN InPreviewWidget, const bool IN InParentDestroy /* = false */)
 {
+	// Async Check
+	for (auto& EachAsync : AsyncPreviewList)
+	{
+		if (EachAsync.Value.PreviewWidget == InPreviewWidget)
+		{
+			DMAsyncLoadManager::Get()->CancelAsyncLoad(EachAsync.Key);
+			return;
+		}
+	}
+
 	FDMPreviewInfo* PreviewInfo = PreviewList.Find(InPreviewWidget);
 	if (PreviewInfo == nullptr)
 		return;
 
 	PreviewInfo->Release();
+	PreviewList.Remove(InPreviewWidget);
+}
+
+bool DMPreviewManager::ReleasePreview(const FString IN InAsyncKey, const bool IN InParentDestroy /*= false*/)
+{
+	FDMPreviewInfo* AsyncPreviewInfo = AsyncPreviewList.Find(InAsyncKey);
+	if (AsyncPreviewInfo == nullptr)
+		return false;
+
+	DMAsyncLoadManager::Get()->CancelAsyncLoad(InAsyncKey);
+	AsyncPreviewList.Remove(InAsyncKey);
+	return true;
 }

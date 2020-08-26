@@ -60,8 +60,11 @@ void DMPreviewManager::SetPreview(FDMPreviewInfo& IN InPreviewInfo)
  		PreviewInfo->PreviewStudio = CastedPreviewStudio;
  		PreviewInfo->PreviewStudio->SetPreviewTarget(*PreviewInfo);
  
- 		// 모두 셋팅되면 보이도록 하자
- 		PreviewInfo->PreviewWidget->OnShow();
+		// 모두 셋팅되면 보이도록 하자
+		if (PreviewInfo->ManualVisible == false)
+		{
+			PreviewInfo->PreviewWidget->OnShow();
+		}
  
  		// Add Preview List
  		PreviewList.Add(PreviewInfo->PreviewWidget, *PreviewInfo);

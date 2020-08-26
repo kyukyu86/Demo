@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Templates/SubclassOf.h"
+#include "TimerManager.h"
+#include "Engine/EngineTypes.h"
 
 
 #define USE_GENERATEDCLASS 1
@@ -30,6 +32,11 @@ public:
 	static TSubclassOf<UObject> GetGeneratedClass(const FString& InLongPackageName);
 
 	static FString ResolvePath(const FString& InPath);	
+
+	static FTimerHandle SetTimer(FTimerDelegate const& InDelegate, float InRate, bool InbLoop);
+	static void ClearTimer(FTimerHandle& IN InTimerHandle);
+
+	void SetDOF(const float IN InValue);
 };
 
 

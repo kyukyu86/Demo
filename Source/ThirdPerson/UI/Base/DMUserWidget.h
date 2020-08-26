@@ -13,9 +13,29 @@ UCLASS()
 class THIRDPERSON_API UDMUserWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+private:
+	// Widget Animation
+	TMap<FName, UWidgetAnimation*> WidgetAnimationList;
+
 protected:
+	UPROPERTY(EditAnywhere, Category = "WRUserWidget", DisplayName = "Use Widget Anim")
+		bool bUseWidgetAnimation = false;
+
+protected:
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	void SetFocusableInputMode(const bool IN InUIMode, UWidget* IN InFocusWidget = nullptr);
+
+	// Widget Animation
+	UWidgetAnimation* GetAnimationByName(FName IN InAnimationName) const;
+	void CollectWidgetAnimation();
+
+public:
+	// Widget Animation
+	bool PlayAnimationByName(const FName InAnimationName, float StartAtTime = 0.0f, int32 NumLoopsToPlay = 1, EUMGSequencePlayMode::Type PlayMode = EUMGSequencePlayMode::Forward, float PlaybackSpeed = 1.0f, bool bRestoreState = false);
+	void StopAnimationByName(const FName InAnimationName);
+	bool IsAnimationPlayingByName(const FName InAnimationName);
 };
 
 

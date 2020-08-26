@@ -15,8 +15,8 @@ class THIRDPERSON_API UDMUIPanel_Main : public UDMUIPanel
 	GENERATED_BODY()
 	
 private:
-	class UTextBlock* TextBlock_Name;
-	class UDMUISlot_Preview* Slot_Preview;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
+		class UTextBlock* TextBlock_Name;
 
 protected:
 	virtual void NativeConstruct() override;

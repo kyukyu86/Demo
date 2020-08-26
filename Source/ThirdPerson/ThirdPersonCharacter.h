@@ -4,7 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Enum/DMActorEnum.h"
 #include "ThirdPersonCharacter.generated.h"
+
+
+DECLARE_DELEGATE_TwoParams(FDMBindingInputDelegate, EDMInput, EInputEvent);
+
 
 UCLASS(config=Game)
 class AThirdPersonCharacter : public ACharacter
@@ -71,5 +76,11 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+
+
+
+
+	void OnInputEvent(const EDMInput IN InInputType, const EInputEvent IN InEventType);
 };
 

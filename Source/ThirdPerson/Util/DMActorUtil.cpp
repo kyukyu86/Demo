@@ -2,6 +2,10 @@
 
 
 #include "DMActorUtil.h"
+#include "../GameInstance/DMGameInstance.h"
+#include "Engine/World.h"
+#include "Engine/PostProcessVolume.h"
+#include "EngineUtils.h"
 
 
 FString DMActorUtil::ResolvePath(const FString& InPath)
@@ -26,4 +30,56 @@ FString DMActorUtil::ResolvePath(const FString& InPath)
 	}
 
 	return ResolvedPath;
+}
+
+FTimerHandle DMActorUtil::SetTimer(FTimerDelegate const& InDelegate, float InRate, bool InbLoop)
+{
+	FTimerHandle TimerHandle;
+
+	if (UDMGameInstance::GetGameInstance() == nullptr)
+		return TimerHandle;
+
+	UWorld* pWorld = UDMGameInstance::GetGameInstance()->GetWorld();
+	if (nullptr == pWorld)
+		return TimerHandle;
+
+	pWorld->GetTimerManager().SetTimer(TimerHandle, InDelegate, InRate, InbLoop);
+	return TimerHandle;
+}
+
+void DMActorUtil::ClearTimer(FTimerHandle& IN InTimerHandle)
+{
+	if (UDMGameInstance::GetGameInstance() == nullptr)
+		return;
+
+	UWorld* pWorld = UDMGameInstance::GetGameInstance()->GetWorld();
+	if (nullptr == pWorld)
+		return;
+
+	pWorld->GetTimerManager().ClearTimer(InTimerHandle);
+}
+
+void DMActorUtil::SetDOF(const float IN InValue)
+{
+	UWorld* World = UDMGameInstance::GetGameInstance()->GetWorld();
+	for (TActorIterator<APostProcessVolume> Iter(World); Iter; ++Iter)
+	{
+		APostProcessVolume* PostProcessVolume = *Iter;
+		if (PostProcessVolume == nullptr)
+			continue;
+
+		FPostProcessVolumeProperties PostProcessVolumeProperties = PostProcessVolume->GetProperties();
+		FPostProcessSettings* PostProcessSettings = const_cast<FPostProcessSettings*>(PostProcessVolumeProperties.Settings);
+
+		if (InValue != 0)
+		{
+			PostProcessSettings->bOverride_DepthOfFieldFocalDistance = true;
+			PostProcessSettings->DepthOfFieldFocalDistance = InValue;
+		}
+		else
+		{
+			PostProcessSettings->bOverride_DepthOfFieldFocalDistance = false;
+			PostProcessSettings->DepthOfFieldFocalDistance = InValue;
+		}
+	}
 }

@@ -17,10 +17,10 @@ DMPathManager::~DMPathManager()
 
 void DMPathManager::OnInit()
 {
-	AddPath(EDMPath::UIPanel, "/Game/StarterContent/Blueprints/Assets/UI/Panel/");
-	AddPath(EDMPath::UISlot, "/Game/StarterContent/Blueprints/Assets/UI/Slot/");
-	AddPath(EDMPath::Preview, "/Game/StarterContent/Blueprints/Assets/PreviewStudio/");
-	AddPath(EDMPath::Actor, "/Game/StarterContent/Blueprints/Assets/Actor/");
+	AddPath(EDMPath::UIPanel, "/Game/Blueprints/UI/Panel/");
+	AddPath(EDMPath::UISlot, "/Game/Blueprints/UI/Slot/");
+	AddPath(EDMPath::Preview, "/Game/Blueprints/PreviewStudio/");
+	AddPath(EDMPath::Actor, "/Game/Blueprints/Actor/");
 }
 
 void DMPathManager::OnShutdown()

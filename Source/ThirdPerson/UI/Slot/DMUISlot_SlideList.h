@@ -6,6 +6,8 @@
 #include "../Base/DMUISlot.h"
 #include "DMUISlot_SlideList.generated.h"
 
+DECLARE_DELEGATE_OneParam(FDMSlideChanged, int32);
+
 UENUM(BlueprintType)
 enum class EDMSlideStartType : uint8
 {
@@ -37,6 +39,8 @@ private:
 		float RepeatMoveTime = 0.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true", ClampMin = "0.2"))
 		float ChangeMainTime = 0.4f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true", ClampMin = "0.2"))
+		TArray<int32> TestDataList;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		TArray<class UDMUISlot_SlideElement*> ElementList;
@@ -47,6 +51,8 @@ private:
 
 	int32 MainTranslationIndex = 0;
 	int32 NextMainTranslationIndex = 0;
+
+	int32 StartingDataIndex = 0;
 	int32 MainTranslationDataIndex = 0;
 	TArray<int32> DataList;
 
@@ -63,13 +69,17 @@ private:
 	void SetupTransitionList();
 	void SetupElementList();
 
+	class UDMUISlot_SlideElement* GetElement(const int32 IN InTranslationIndex);
 	FVector2D GetTranslation(const int32 IN InTranslationIndex);
+	void UpdateSlot(class UDMUISlot_SlideElement* IN InElement);
 
 	void OnMove(const bool IN InLeft);
 	void UpdateMove(const float IN InDeltaTime);
+	void ReleaseMove();
 
-	void UpdateData();
-	class UDMUISlot_SlideElement* GetElement(const int32 IN InTranslationIndex);
+	void UpdateData(const bool IN InInit);
+	void UpdateDataByDataIndex(const int32 IN InDataIndex);
+	int32 GetData(const int32 IN InDataIndex);
 
 protected:
 	virtual void NativePreConstruct() override;
@@ -79,5 +89,5 @@ protected:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
 public:
-
+	void OnSlideChanged(int32 InDataIndex);
 };

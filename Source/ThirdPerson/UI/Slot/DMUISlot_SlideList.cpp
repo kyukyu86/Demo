@@ -11,6 +11,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Engine/Engine.h"
 
 
 void UDMUISlot_SlideList::NativePreConstruct()
@@ -42,10 +43,7 @@ void UDMUISlot_SlideList::NativeConstruct()
 
 	// Test
 	DataList.Empty();
-	for (int32 i = 0; i < 20; ++i)
-	{
-		DataList.Add(i);
-	}
+	DataList.Append(TestDataList);
 }
 
 void UDMUISlot_SlideList::NativeDestruct()
@@ -82,6 +80,13 @@ FReply UDMUISlot_SlideList::NativeOnKeyDown(const FGeometry& InGeometry, const F
 	return FReply::Unhandled();
 }
 
+void UDMUISlot_SlideList::OnSlideChanged(int32 InDataIndex)
+{
+	// + Delegate
+
+
+}
+
 void UDMUISlot_SlideList::Setup()
 {
 	if (IsSetted)
@@ -94,6 +99,8 @@ void UDMUISlot_SlideList::Setup()
 	SetupElementList();
 
 	IsSetted = true;
+
+	UpdateData(true);
 }
 
 void UDMUISlot_SlideList::SetupTransitionList()
@@ -178,11 +185,36 @@ FVector2D UDMUISlot_SlideList::GetTranslation(const int32 IN InTranslationIndex)
 	return FVector2D::ZeroVector;
 }
 
+void UDMUISlot_SlideList::UpdateSlot(class UDMUISlot_SlideElement* IN InElement)
+{
+	int32 Data = GetData(StartingDataIndex + InElement->GetTranslationIndex());
+	if (Data == -1)
+	{
+		InElement->SetEmpty();
+	}
+	else
+	{
+		InElement->SetData(Data);
+	}
+}
+
 void UDMUISlot_SlideList::OnMove(const bool IN InLeft)
 {
 	if (IsSetted == false)
 		return;
 
+	if (InLeft && MainTranslationDataIndex <= 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, TEXT("Last Left"));
+		return;
+	}
+
+	if (InLeft == false && MainTranslationDataIndex >= DataList.Num() - 1)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, TEXT("Last Right"));
+		return;
+	}
+	
 	if (IsMove && !IsMoveComplete)
 	{
 		if (IsLeft == InLeft)
@@ -197,11 +229,11 @@ void UDMUISlot_SlideList::OnMove(const bool IN InLeft)
 		DstMoveTime = NormalMoveTime;
 	}
 
-	NextMainTranslationIndex = InLeft ? MainTranslationIndex + 1 : MainTranslationIndex - 1;	// 왼쪽으로 이동하면 오른쪽이 다음순번
+	NextMainTranslationIndex = InLeft ? MainTranslationIndex - 1 : MainTranslationIndex + 1;	// 왼쪽이 눌리면 왼쪽이 중앙으로 와야하므로 왼쪽이 다음 순번
 // 	if (NextMainTranslationIndex <= 0 || NextMainTranslationIndex >= TranslationList.Num())
 // 		return;
 
-	AccumulateMoveTime = 0.f;
+	//AccumulateMoveTime = 0.f;
 	IsMoveComplete = false;
 	IsMove = true;
 	IsLeft = InLeft;
@@ -218,6 +250,20 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 	if (IsMove == false)
 		return;
 
+	if (IsLeft && MainTranslationDataIndex <= 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, TEXT("Last Left"));
+		ReleaseMove();
+		return;
+	}
+
+	if (IsLeft == false && MainTranslationDataIndex >= DataList.Num() - 1)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, TEXT("Last Right"));
+		ReleaseMove();
+		return;
+	}
+
 	AccumulateMoveTime += InDeltaTime;	
 	float Rate = AccumulateMoveTime / DstMoveTime;
 	if (Rate >= 1.f)
@@ -229,16 +275,16 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 	{
 		// Translation
 		int32 CurrentTranslationIndex = ElementWidget->GetTranslationIndex();
-		int32 NextTranslationIndex = IsLeft ? ElementWidget->GetTranslationIndex() - 1 : ElementWidget->GetTranslationIndex() + 1;
-		if (IsLeft && CurrentTranslationIndex == 0)
+		int32 NextTranslationIndex = IsLeft ? ElementWidget->GetTranslationIndex() + 1 : ElementWidget->GetTranslationIndex() - 1;	// 왼쪽이면 오른쪽으로 이동
+		if (IsLeft && CurrentTranslationIndex == ElementCount - 1)
 		{
-			NextTranslationIndex = TranslationList.Num() - 1;
+			NextTranslationIndex = 0;	// 왼쪽입력시 슬라이드는 오른쪽으로 이동한다. 제일 오른쪽은 제일 왼쪽으로 이동
 			FVector2D DstTranslation = GetTranslation(NextTranslationIndex);
 			ElementWidget->SetRenderTranslation(DstTranslation);
 		}
-		else if (IsLeft == false && CurrentTranslationIndex == ElementCount - 1)
+		else if (IsLeft == false && CurrentTranslationIndex == 0)
 		{
-			NextTranslationIndex = 0;
+			NextTranslationIndex = TranslationList.Num() - 1;	// 오른쪽입력시 슬라이드는 왼쪽으로 이동한다. 제일 왼쪽은 제일 오른쪽으로 이동
 			FVector2D DstTranslation = GetTranslation(NextTranslationIndex);
 			ElementWidget->SetRenderTranslation(DstTranslation);
 		}
@@ -286,17 +332,31 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 	// Finish
 	if (Rate >= 1.f)
 	{
+		if (IsLeft)
+		{
+			--MainTranslationDataIndex;
+			StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
+		}
+		else
+		{
+			++MainTranslationDataIndex;
+			StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
+		}
+
 		for (auto ElementWidget : ElementList)
 		{
+			bool bMoved = false;
 			int32 CurrentTranslationIndex = ElementWidget->GetTranslationIndex();
-			int32 ModifyTranslationIndex = IsLeft ? ElementWidget->GetTranslationIndex() - 1 : ElementWidget->GetTranslationIndex() + 1;
-			if (IsLeft && CurrentTranslationIndex == 0)
+			int32 ModifyTranslationIndex = IsLeft ? ElementWidget->GetTranslationIndex() + 1 : ElementWidget->GetTranslationIndex() - 1;
+			if (IsLeft && CurrentTranslationIndex == ElementCount - 1)
 			{
-				ModifyTranslationIndex = TranslationList.Num() - 1;
+				ModifyTranslationIndex = 0;	// 왼쪽입력시 슬라이드는 오른쪽으로 이동한다. 제일 오른쪽은 제일 왼쪽으로 이동
+				bMoved = true;
 			}
-			else if (IsLeft == false && CurrentTranslationIndex == ElementCount - 1)
+			else if (IsLeft == false && CurrentTranslationIndex == 0)
 			{
-				ModifyTranslationIndex = 0;
+				ModifyTranslationIndex = TranslationList.Num() - 1;	// 오른쪽입력시 슬라이드는 왼쪽으로 이동한다. 제일 왼쪽은 제일 오른쪽으로 이동
+				bMoved = true;
 			}
 
 			if (ModifyTranslationIndex == MainTranslationIndex)
@@ -311,15 +371,17 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 			ElementWidget->SetTranslationIndex(ModifyTranslationIndex);
 			FVector2D DstTranslation = GetTranslation(ModifyTranslationIndex);
 			ElementWidget->SetRenderTranslation(DstTranslation);
+
+			if (bMoved)
+			{
+				UpdateSlot(ElementWidget);
+			}
 		}		
 
 		--MoveStep;
 		if (MoveStep == 0)
 		{
-			AccumulateMoveTime = 0.f;
-			IsMoveComplete = true;
-			IsMove = false;
-			IsLeft = false;
+			ReleaseMove();
 		}		
 		else
 		{
@@ -328,26 +390,80 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 	}
 }
 
-void UDMUISlot_SlideList::UpdateData()
+void UDMUISlot_SlideList::ReleaseMove()
 {
-	switch (SlideStartType)
+	AccumulateMoveTime = 0.f;
+	IsMoveComplete = true;
+	IsMove = false;
+	IsLeft = false;
+	MoveStep = 0;
+}
+
+void UDMUISlot_SlideList::UpdateData(const bool IN InInit)
+{
+	if (InInit)
 	{
-	case EDMSlideStartType::Head:
+		switch (SlideStartType)
+		{
+		case EDMSlideStartType::Head:
+		{
+			MainTranslationDataIndex = 0;
+			StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
+
+			// + 중앙->오른쪽으로 데이터 삽입
+		}
+		break;
+		case EDMSlideStartType::Middle:
+		{
+			MainTranslationDataIndex = DataList.Num() / 2;
+			StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
+
+			// + 왼쪽<-중앙으로 인덱스-1씩 데이터 삽입
+			// + 중앙->오른쪽으로 인덱스+1씩 데이터 삽입
+		}
+		break;
+		case EDMSlideStartType::Tail:
+		{
+			MainTranslationDataIndex = DataList.Num() - 1;
+			StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
+
+			// + 왼쪽<-중앙으로 인덱스 -1씩 데이터 삽입
+		}
+		break;
+		}
+	}	
+
+	for (int32 i = 0; i < TranslationList.Num(); ++i)
 	{
-		MainTranslationDataIndex = 0;		
+		UDMUISlot_SlideElement* ElementWidget = GetElement(i);
+		if (ElementWidget)
+		{
+			int32 Data = GetData(StartingDataIndex + i);
+			if (Data == -1)
+			{
+				ElementWidget->SetEmpty();
+			}
+			else
+			{
+				ElementWidget->SetData(Data);
+			}
+		}
 	}
-	break;
-	case EDMSlideStartType::Middle:
-	{
-		MainTranslationDataIndex = DataList.Num() / 2;
-	}
-	break;
-	case EDMSlideStartType::Tail:
-	{
-		MainTranslationDataIndex = DataList.Num() - 1;
-	}
-	break;
-	}
+}
+
+void UDMUISlot_SlideList::UpdateDataByDataIndex(const int32 IN InDataIndex)
+{
+	MainTranslationDataIndex = InDataIndex;
+	StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
+
+	UpdateData(false);
+}
+
+int32 UDMUISlot_SlideList::GetData(const int32 IN InDataIndex)
+{
+	if (DataList.IsValidIndex(InDataIndex))
+		return DataList[InDataIndex];
+	return -1;
 }
 
 UDMUISlot_SlideElement* UDMUISlot_SlideList::GetElement(const int32 IN InTranslationIndex)

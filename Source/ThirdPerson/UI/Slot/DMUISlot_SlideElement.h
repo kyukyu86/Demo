@@ -23,6 +23,10 @@ private:
 		class UTextBlock* TextBlock_Data;
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
 		class UImage* Image_Main;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
+		class UImage* Image_Icon;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
+		class UImage* Image_BG;
 
 private:
 	int32 Index = 0;
@@ -45,4 +49,5 @@ public:
 	void SetIndex(const int32 IN InIndex);
 
 	void SetData(const int32 IN InData);
+	void SetEmpty();
 };

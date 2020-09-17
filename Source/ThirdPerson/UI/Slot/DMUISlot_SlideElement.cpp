@@ -41,5 +41,15 @@ void UDMUISlot_SlideElement::SetIndex(const int32 IN InIndex)
 
 void UDMUISlot_SlideElement::SetData(const int32 IN InData)
 {
+	Image_BG->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	Image_Icon->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	TextBlock_Data->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	TextBlock_Data->SetText(FText::FromString(FString::FormatAsNumber(InData)));
+}
+
+void UDMUISlot_SlideElement::SetEmpty()
+{
+	Image_BG->SetVisibility(ESlateVisibility::Collapsed);
+	Image_Icon->SetVisibility(ESlateVisibility::Collapsed);
+	TextBlock_Data->SetVisibility(ESlateVisibility::Collapsed);
 }

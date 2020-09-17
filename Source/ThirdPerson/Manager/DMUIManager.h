@@ -40,4 +40,19 @@ public:
 	void ClosePanel(const EDMPanelKind IN InKind);
 	bool IsOpenedPanel(const EDMPanelKind IN InKind);
 	bool IsAsyncLoadingPanel(const EDMPanelKind IN InKind);
+
+	UUserWidget* CreateUISync(FString IN InPath);
+	template<class T>
+	T* CreateUISync_Casted(FString IN InPath);
 };
+
+
+template<class T>
+T* DMUIManager::CreateUISync_Casted(FString IN InPath)
+{
+	UUserWidget* CreatedWidget = CreateUISync(InPath);
+	if (CreatedWidget == nullptr)
+		return nullptr;
+
+	return Cast<T>(CreatedWidget);
+}

@@ -4,6 +4,7 @@
 #include "DMUIManager.h"
 #include "DMAsyncLoadManager.h"
 #include "DMPathManager.h"
+#include "../GameInstance/DMGameInstance.h"
 
 
 DMUIManager::DMUIManager()
@@ -117,4 +118,28 @@ bool DMUIManager::IsAsyncLoadingPanel(const EDMPanelKind IN InKind)
 	}
 
 	return false;
+}
+
+UUserWidget* DMUIManager::CreateUISync(FString IN InPath)
+{
+	UUserWidget* pWidget = nullptr;
+	FString strPath = "/Game/Blueprints/UI/Slot/";
+	strPath += InPath + "." + InPath + "_C";
+	FStringClassReference UIClassReference(*strPath);
+	UClass* UIClass = nullptr;
+	if (UIClassReference.TryLoadClass<UUserWidget>() != nullptr)
+	{
+		UIClass = UIClassReference.ResolveClass();
+	}
+	else
+	{
+		return nullptr;
+	}
+	if (UIClass)
+	{
+		pWidget = CreateWidget<UUserWidget>(UDMGameInstance::GetGameInstance()->GetWorld(), UIClass);
+		if (pWidget == nullptr)
+			return nullptr;
+	}
+	return pWidget;
 }

@@ -18,6 +18,8 @@ void UDMUISlot_MaterialEffect::NativeConstruct()
 			MaterialInstance->SetScalarParameterValue("UIRandom", FMath::FRandRange(0.f, 1.f));
 		}
 	}
+
+	FText TestText = NSLOCTEXT("Your Namespace", "Your Key", "Your Text");
 }
 
 void UDMUISlot_MaterialEffect::NativeDestruct()

@@ -12,38 +12,23 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/Engine.h"
+#include "DMUISlot_CustomSlideElement.h"
 
 
 void UDMUISlot_SlideList::NativePreConstruct()
 {
 	Super::NativePreConstruct();
-	
-// 	if (IsDesignTime())
-// 	{
-// 		UDMUISlot_SlideElement* CreatedElementWidget = DMUIManager::Get()->CreateUISync_Casted<UDMUISlot_SlideElement>("Slot_SlideElement");
-// 		if (CreatedElementWidget)
-// 		{
-// 			CanvasPanelMain->AddChildToCanvas(CreatedElementWidget);
-// 			FVector2D DesiredSizeThis = this->TakeWidget()->GetDesiredSize();
-// 			FVector2D DesiredSizeElement = CreatedElementWidget->TakeWidget()->GetDesiredSize();
-// 
-// 			float Width = DesiredSizeThis.X;
-// 			float Height = DesiredSizeThis.Y;
-// 		}
-// 	}
+		
 }
 
 void UDMUISlot_SlideList::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	// Make List
-
-	SetFocusableInputMode(true, this);
+	SetFocusableInputMode(true, this);	
 
 	// Test
-	DataList.Empty();
-	DataList.Append(TestDataList);
+	SetupElement("Slot_CustomSlideElement");
 }
 
 void UDMUISlot_SlideList::NativeDestruct()
@@ -80,27 +65,54 @@ FReply UDMUISlot_SlideList::NativeOnKeyDown(const FGeometry& InGeometry, const F
 	return FReply::Unhandled();
 }
 
-void UDMUISlot_SlideList::OnSlideChanged(int32 InDataIndex)
-{
-	// + Delegate
-
-
-}
-
 void UDMUISlot_SlideList::Setup()
 {
-	if (IsSetted)
+	if (SlideElementPath.IsEmpty())
 		return;
 
+	if (IsSetted)
+		return;
+	
+	if(IsMadeList == false)
+		MakeElementList();
+
 	if (ElementList.IsValidIndex(0) == false || ElementList[0]->IsValidLowLevel() == false)
+		return;
+
+	if (ElementList[0]->GetDesiredSize().IsZero())
 		return;
 
 	SetupTransitionList();
 	SetupElementList();
 
-	IsSetted = true;
+	UpdateElementList(true);
 
-	UpdateData(true);
+	IsSetted = true;
+}
+
+void UDMUISlot_SlideList::MakeElementList()
+{
+	// Make List
+	for (int32 i = 0; i < ElementCount; ++i)
+	{
+		UDMUISlot_SlideElement* CreatedElementWidget = DMUIManager::Get()->CreateUISync_Casted<UDMUISlot_SlideElement>(SlideElementPath);
+		if (CreatedElementWidget)
+		{
+			CreatedElementWidget->SetParent(this);
+			CanvasPanelMain->AddChildToCanvas(CreatedElementWidget);
+			ElementList.Add(CreatedElementWidget);
+
+			FVector2D DesiredSizeThis = this->TakeWidget()->GetDesiredSize();
+			FVector2D DesiredSizeElement = CreatedElementWidget->TakeWidget()->GetDesiredSize();
+			float Width = DesiredSizeThis.X;
+			float Height = DesiredSizeThis.Y;
+		}
+	}
+
+	IsMadeList = true;
+
+	// Test. 외부에서 지정해줘야한다.
+	DataSize = TestDataList.Num();
 }
 
 void UDMUISlot_SlideList::SetupTransitionList()
@@ -122,7 +134,7 @@ void UDMUISlot_SlideList::SetupTransitionList()
 			ChildPosition.X = ChildSize.X - (ChildSize / 3.f).X;
 			ChildPosition.Y = ChildSize.Y - (ChildSize / 3.f).Y;
 			ResultPosition.X = ParentMiddlePosition.X - ChildPosition.X;
-			ResultPosition.Y = ParentMiddlePosition.Y - ChildPosition.Y;
+			ResultPosition.Y = ParentMiddlePosition.Y - ChildPosition.Y + MainOffset;
 			TranslationList.Add(ResultPosition);
 		}
 		else if (i % 2 == 1)
@@ -185,16 +197,16 @@ FVector2D UDMUISlot_SlideList::GetTranslation(const int32 IN InTranslationIndex)
 	return FVector2D::ZeroVector;
 }
 
-void UDMUISlot_SlideList::UpdateSlot(class UDMUISlot_SlideElement* IN InElement)
+void UDMUISlot_SlideList::UpdateElement(class UDMUISlot_SlideElement* IN InElement)
 {
-	int32 Data = GetData(StartingDataIndex + InElement->GetTranslationIndex());
-	if (Data == -1)
+	int32 DataIndex = StartingDataIndex + InElement->GetTranslationIndex();
+	if (DataIndex < 0 || DataIndex > DataSize - 1)
 	{
 		InElement->SetEmpty();
 	}
 	else
 	{
-		InElement->SetData(Data);
+		InElement->SetData(DataIndex);
 	}
 }
 
@@ -209,7 +221,7 @@ void UDMUISlot_SlideList::OnMove(const bool IN InLeft)
 		return;
 	}
 
-	if (InLeft == false && MainTranslationDataIndex >= DataList.Num() - 1)
+	if (InLeft == false && MainTranslationDataIndex >= DataSize - 1)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, TEXT("Last Right"));
 		return;
@@ -257,7 +269,7 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 		return;
 	}
 
-	if (IsLeft == false && MainTranslationDataIndex >= DataList.Num() - 1)
+	if (IsLeft == false && MainTranslationDataIndex >= DataSize - 1)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, TEXT("Last Right"));
 		ReleaseMove();
@@ -345,18 +357,18 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 
 		for (auto ElementWidget : ElementList)
 		{
-			bool bMoved = false;
+			bool bSwap = false;
 			int32 CurrentTranslationIndex = ElementWidget->GetTranslationIndex();
 			int32 ModifyTranslationIndex = IsLeft ? ElementWidget->GetTranslationIndex() + 1 : ElementWidget->GetTranslationIndex() - 1;
 			if (IsLeft && CurrentTranslationIndex == ElementCount - 1)
 			{
 				ModifyTranslationIndex = 0;	// 왼쪽입력시 슬라이드는 오른쪽으로 이동한다. 제일 오른쪽은 제일 왼쪽으로 이동
-				bMoved = true;
+				bSwap = true;
 			}
 			else if (IsLeft == false && CurrentTranslationIndex == 0)
 			{
 				ModifyTranslationIndex = TranslationList.Num() - 1;	// 오른쪽입력시 슬라이드는 왼쪽으로 이동한다. 제일 왼쪽은 제일 오른쪽으로 이동
-				bMoved = true;
+				bSwap = true;
 			}
 
 			if (ModifyTranslationIndex == MainTranslationIndex)
@@ -372,9 +384,9 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 			FVector2D DstTranslation = GetTranslation(ModifyTranslationIndex);
 			ElementWidget->SetRenderTranslation(DstTranslation);
 
-			if (bMoved)
+			if (bSwap)
 			{
-				UpdateSlot(ElementWidget);
+				UpdateElement(ElementWidget);
 			}
 		}		
 
@@ -386,6 +398,8 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 		else
 		{
 			AccumulateMoveTime = 0.f;
+
+			OnSlideChanged(MainTranslationDataIndex);
 		}
 	}
 }
@@ -399,7 +413,7 @@ void UDMUISlot_SlideList::ReleaseMove()
 	MoveStep = 0;
 }
 
-void UDMUISlot_SlideList::UpdateData(const bool IN InInit)
+void UDMUISlot_SlideList::UpdateElementList(const bool IN InInit)
 {
 	if (InInit)
 	{
@@ -415,7 +429,7 @@ void UDMUISlot_SlideList::UpdateData(const bool IN InInit)
 		break;
 		case EDMSlideStartType::Middle:
 		{
-			MainTranslationDataIndex = DataList.Num() / 2;
+			MainTranslationDataIndex = DataSize / 2;
 			StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
 
 			// + 왼쪽<-중앙으로 인덱스-1씩 데이터 삽입
@@ -424,7 +438,7 @@ void UDMUISlot_SlideList::UpdateData(const bool IN InInit)
 		break;
 		case EDMSlideStartType::Tail:
 		{
-			MainTranslationDataIndex = DataList.Num() - 1;
+			MainTranslationDataIndex = DataSize - 1;
 			StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
 
 			// + 왼쪽<-중앙으로 인덱스 -1씩 데이터 삽입
@@ -433,37 +447,18 @@ void UDMUISlot_SlideList::UpdateData(const bool IN InInit)
 		}
 	}	
 
-	for (int32 i = 0; i < TranslationList.Num(); ++i)
+	for (auto ElementWidget : ElementList)
 	{
-		UDMUISlot_SlideElement* ElementWidget = GetElement(i);
-		if (ElementWidget)
-		{
-			int32 Data = GetData(StartingDataIndex + i);
-			if (Data == -1)
-			{
-				ElementWidget->SetEmpty();
-			}
-			else
-			{
-				ElementWidget->SetData(Data);
-			}
-		}
+		UpdateElement(ElementWidget);
 	}
 }
 
-void UDMUISlot_SlideList::UpdateDataByDataIndex(const int32 IN InDataIndex)
+void UDMUISlot_SlideList::ChangeElementListByDataIndex(const int32 IN InDataIndex)
 {
 	MainTranslationDataIndex = InDataIndex;
 	StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
 
-	UpdateData(false);
-}
-
-int32 UDMUISlot_SlideList::GetData(const int32 IN InDataIndex)
-{
-	if (DataList.IsValidIndex(InDataIndex))
-		return DataList[InDataIndex];
-	return -1;
+	UpdateElementList(false);
 }
 
 UDMUISlot_SlideElement* UDMUISlot_SlideList::GetElement(const int32 IN InTranslationIndex)
@@ -474,4 +469,16 @@ UDMUISlot_SlideElement* UDMUISlot_SlideList::GetElement(const int32 IN InTransla
 			return ElementWidget;
 	}
 	return nullptr;
+}
+
+void UDMUISlot_SlideList::SetupElement(FString IN InPath)
+{
+	SlideElementPath = InPath;
+}
+
+void UDMUISlot_SlideList::OnSlideChanged(int32 InDataIndex)
+{
+	// + Delegate
+
+
 }

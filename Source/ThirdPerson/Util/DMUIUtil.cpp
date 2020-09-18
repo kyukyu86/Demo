@@ -2,6 +2,7 @@
 
 
 #include "DMUIUtil.h"
+#include "Engine/Texture2D.h"
 
 DMUIUtil::DMUIUtil()
 {
@@ -9,6 +10,51 @@ DMUIUtil::DMUIUtil()
 
 DMUIUtil::~DMUIUtil()
 {
+}
+
+UObject* DMUIUtil::LoadImageObject(FString InImageFullPath)
+{
+	if (InImageFullPath.IsEmpty() == true)
+		return nullptr;
+
+	FStringAssetReference AssetReference(InImageFullPath);
+	UObject* ImageObject = AssetReference.TryLoad();
+	if (ImageObject == nullptr)
+	{
+//		UE_LOG(IMError, Error, TEXT("Load Failed at path = %s"), *TextureFullPath);
+	}
+	return ImageObject;
+}
+
+bool DMUIUtil::SetResourceObject(UImage* const IN InImage, const FString& IN InTextureFileFullPath, const bool IN bInMatchSize /*= false*/)
+{
+	if (InImage == nullptr)
+		return false;
+
+	UObject* Texture = DMUIUtil::LoadImageObject(InTextureFileFullPath);
+	return DMUIUtil::SetResourceObject(InImage, Texture, bInMatchSize);
+}
+
+bool DMUIUtil::SetResourceObject(UImage* const IN InImage, UObject* const IN InResourceObject, const bool IN bInMatchSize /*= false*/)
+{
+	if (InImage == nullptr)
+		return false;
+
+	if (InResourceObject == nullptr)
+		return false;
+
+	InImage->Brush.SetResourceObject(InResourceObject);
+
+	if (bInMatchSize)
+	{
+		UTexture2D* CastedTexture = Cast<UTexture2D>(InResourceObject);
+		if (CastedTexture != nullptr)
+		{
+			FVector2D vSize(CastedTexture->GetSizeX(), CastedTexture->GetSizeY());
+			InImage->SetBrushSize(vSize);
+		}
+	}
+	return true;
 }
 
 UMaterialInstanceDynamic* DMUIUtil::GetDynamicMaterial(UImage* const IN InImage)

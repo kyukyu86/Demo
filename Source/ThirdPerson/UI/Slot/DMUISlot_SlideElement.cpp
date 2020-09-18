@@ -19,12 +19,12 @@ void UDMUISlot_SlideElement::NativeDestruct()
 void UDMUISlot_SlideElement::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+
 }
 
 void UDMUISlot_SlideElement::SetMain(const bool IN InSet)
 {
 	bIsMain = InSet;
-	Image_Main->SetVisibility(InSet ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
 }
 
 void UDMUISlot_SlideElement::SetTranslationIndex(const int32 IN InIndex)
@@ -37,19 +37,4 @@ void UDMUISlot_SlideElement::SetIndex(const int32 IN InIndex)
 {
 	Index = InIndex;
 	TextBlock_Index->SetText(FText::FromString(FString::FormatAsNumber(InIndex)));
-}
-
-void UDMUISlot_SlideElement::SetData(const int32 IN InData)
-{
-	Image_BG->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	Image_Icon->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	TextBlock_Data->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	TextBlock_Data->SetText(FText::FromString(FString::FormatAsNumber(InData)));
-}
-
-void UDMUISlot_SlideElement::SetEmpty()
-{
-	Image_BG->SetVisibility(ESlateVisibility::Collapsed);
-	Image_Icon->SetVisibility(ESlateVisibility::Collapsed);
-	TextBlock_Data->SetVisibility(ESlateVisibility::Collapsed);
 }

@@ -143,3 +143,27 @@ UUserWidget* DMUIManager::CreateUISync(FString IN InPath)
 	}
 	return pWidget;
 }
+
+UUserWidget* DMUIManager::CreateUISyncFullPath(FString IN InPath)
+{
+	UUserWidget* pWidget = nullptr;
+	FString strPath = InPath;
+	strPath += "_C";
+	FStringClassReference UIClassReference(*strPath);
+	UClass* UIClass = nullptr;
+	if (UIClassReference.TryLoadClass<UUserWidget>() != nullptr)
+	{
+		UIClass = UIClassReference.ResolveClass();
+	}
+	else
+	{
+		return nullptr;
+	}
+	if (UIClass)
+	{
+		pWidget = CreateWidget<UUserWidget>(UDMGameInstance::GetGameInstance()->GetWorld(), UIClass);
+		if (pWidget == nullptr)
+			return nullptr;
+	}
+	return pWidget;
+}

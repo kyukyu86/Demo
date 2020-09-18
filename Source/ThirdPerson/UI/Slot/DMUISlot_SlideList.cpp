@@ -13,6 +13,9 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/Engine.h"
 #include "DMUISlot_CustomSlideElement.h"
+#include "Components/Overlay.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/OverlaySlot.h"
 
 
 void UDMUISlot_SlideList::NativePreConstruct()
@@ -27,8 +30,6 @@ void UDMUISlot_SlideList::NativeConstruct()
 
 	SetFocusableInputMode(true, this);	
 
-	// Test
-	SetupElement("Slot_CustomSlideElement");
 }
 
 void UDMUISlot_SlideList::NativeDestruct()
@@ -67,19 +68,19 @@ FReply UDMUISlot_SlideList::NativeOnKeyDown(const FGeometry& InGeometry, const F
 
 void UDMUISlot_SlideList::Setup()
 {
-	if (SlideElementPath.IsEmpty())
+	if (ElementWidgetPath.IsEmpty())
 		return;
 
 	if (IsSetted)
 		return;
 	
-	if(IsMadeList == false)
+	if (IsMadeList == false)
 		MakeElementList();
 
-	if (ElementList.IsValidIndex(0) == false || ElementList[0]->IsValidLowLevel() == false)
+	if (ElementList.IsValidIndex(0) == false || ElementList[0].SlideElement->IsValidLowLevel() == false)
 		return;
 
-	if (ElementList[0]->GetDesiredSize().IsZero())
+	if (ElementList[0].SlideElement->GetDesiredSize().IsZero())
 		return;
 
 	SetupTransitionList();
@@ -95,18 +96,21 @@ void UDMUISlot_SlideList::MakeElementList()
 	// Make List
 	for (int32 i = 0; i < ElementCount; ++i)
 	{
-		UDMUISlot_SlideElement* CreatedElementWidget = DMUIManager::Get()->CreateUISync_Casted<UDMUISlot_SlideElement>(SlideElementPath);
-		if (CreatedElementWidget)
+		FDMSlideElementWidget NewElement;
+		if (NewElement.CreateElement(this, ElementWidgetPath) == false)
 		{
-			CreatedElementWidget->SetParent(this);
-			CanvasPanelMain->AddChildToCanvas(CreatedElementWidget);
-			ElementList.Add(CreatedElementWidget);
-
-			FVector2D DesiredSizeThis = this->TakeWidget()->GetDesiredSize();
-			FVector2D DesiredSizeElement = CreatedElementWidget->TakeWidget()->GetDesiredSize();
-			float Width = DesiredSizeThis.X;
-			float Height = DesiredSizeThis.Y;
+			checkf(false, TEXT("Creat Failure"));
+			return;
 		}
+
+		NewElement.SlideElement->SetParent(this);
+		CanvasPanelMain->AddChildToCanvas(NewElement.Overlay);
+		ElementList.Add(NewElement);
+
+		FVector2D DesiredSizeThis = this->TakeWidget()->GetDesiredSize();
+		FVector2D DesiredSizeElement = NewElement.SlideElement->TakeWidget()->GetDesiredSize();
+		float Width = DesiredSizeThis.X;
+		float Height = DesiredSizeThis.Y;
 	}
 
 	IsMadeList = true;
@@ -117,7 +121,7 @@ void UDMUISlot_SlideList::MakeElementList()
 
 void UDMUISlot_SlideList::SetupTransitionList()
 {
-	UDMUISlot_SlideElement* ElementWidget = ElementList[0];
+	UDMUISlot_SlideElement* ElementWidget = ElementList[0].SlideElement;
 	FVector2D ChildSize = ElementWidget->GetDesiredSize();
 
 	UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(this);
@@ -131,8 +135,8 @@ void UDMUISlot_SlideList::SetupTransitionList()
 		{
 			// Middle
 			FVector2D ChildPosition;
-			ChildPosition.X = ChildSize.X - (ChildSize / 3.f).X;
-			ChildPosition.Y = ChildSize.Y - (ChildSize / 3.f).Y;
+			ChildPosition.X = ChildSize.X - (ChildSize / MainCalcScale).X;
+			ChildPosition.Y = ChildSize.Y - (ChildSize / MainCalcScale).Y;
 			ResultPosition.X = ParentMiddlePosition.X - ChildPosition.X;
 			ResultPosition.Y = ParentMiddlePosition.Y - ChildPosition.Y + MainOffset;
 			TranslationList.Add(ResultPosition);
@@ -167,21 +171,36 @@ void UDMUISlot_SlideList::SetupElementList()
 	int32 Index = 0;
 	for (auto ElementWidget : ElementList)
 	{		
-		ElementWidget->SetIndex(Index);
-		ElementWidget->SetTranslationIndex(Index);
+		UOverlay* Overlay = ElementWidget.Overlay;
+		UDMUISlot_SlideElement* SlideElement = ElementWidget.SlideElement;
+
+		// Data
+		SlideElement->SetIndex(Index);
+		SlideElement->SetTranslationIndex(Index);
+
+		// Translation & Visibility
 		FVector2D SlotTranslation = GetTranslation(Index);
-		ElementWidget->SetRenderTranslation(SlotTranslation);
+		Overlay->SetRenderTranslation(SlotTranslation);
+		Overlay->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+
+		// Align
+		UOverlaySlot* ElementOverlaySlot = UWidgetLayoutLibrary::SlotAsOverlaySlot(SlideElement);
+		ElementOverlaySlot->SetVerticalAlignment(VAlign_Center);
+		ElementOverlaySlot->SetHorizontalAlignment(HAlign_Center);
+
+		UCanvasPanelSlot* OverlayCanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Overlay);
+		OverlayCanvasPanelSlot->SetPosition(FVector2D::ZeroVector);
+		OverlayCanvasPanelSlot->SetSize(SlideElement->GetDesiredSize());
 
 		if (Index == MainTranslationIndex)	// 메인은 메인설정
 		{
-			ElementWidget->SetMain(true);
-			ElementWidget->SetRenderScale(FVector2D(MainScale, MainScale));
-			UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(ElementWidget);
-			CanvasPanelSlot->SetZOrder(1);
+			SlideElement->SetMain(true);
+			SlideElement->SetRenderScale(FVector2D(MainScale, MainScale));
+			OverlayCanvasPanelSlot->SetZOrder(1);
 		}
 		else
 		{
-			ElementWidget->SetMain(false);
+			SlideElement->SetMain(false);
 		}
 
 		++Index;
@@ -277,72 +296,81 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 	}
 
 	AccumulateMoveTime += InDeltaTime;	
-	float Rate = AccumulateMoveTime / DstMoveTime;
-	if (Rate >= 1.f)
+	float GlobalRate = AccumulateMoveTime / DstMoveTime;
+	if (GlobalRate >= 1.f)
 	{
-		Rate = 1.f;
+		GlobalRate = 1.f;
 	}
 
 	for (auto ElementWidget : ElementList)
 	{
+		UOverlay* Overlay = ElementWidget.Overlay;
+		UDMUISlot_SlideElement* Element = ElementWidget.SlideElement;
+
 		// Translation
-		int32 CurrentTranslationIndex = ElementWidget->GetTranslationIndex();
-		int32 NextTranslationIndex = IsLeft ? ElementWidget->GetTranslationIndex() + 1 : ElementWidget->GetTranslationIndex() - 1;	// 왼쪽이면 오른쪽으로 이동
+		int32 CurrentTranslationIndex = Element->GetTranslationIndex();
+		int32 NextTranslationIndex = IsLeft ? Element->GetTranslationIndex() + 1 : Element->GetTranslationIndex() - 1;	// 왼쪽이면 오른쪽으로 이동
 		if (IsLeft && CurrentTranslationIndex == ElementCount - 1)
 		{
 			NextTranslationIndex = 0;	// 왼쪽입력시 슬라이드는 오른쪽으로 이동한다. 제일 오른쪽은 제일 왼쪽으로 이동
 			FVector2D DstTranslation = GetTranslation(NextTranslationIndex);
-			ElementWidget->SetRenderTranslation(DstTranslation);
+			Overlay->SetRenderTranslation(DstTranslation);
 		}
 		else if (IsLeft == false && CurrentTranslationIndex == 0)
 		{
 			NextTranslationIndex = TranslationList.Num() - 1;	// 오른쪽입력시 슬라이드는 왼쪽으로 이동한다. 제일 왼쪽은 제일 오른쪽으로 이동
 			FVector2D DstTranslation = GetTranslation(NextTranslationIndex);
-			ElementWidget->SetRenderTranslation(DstTranslation);
+			Overlay->SetRenderTranslation(DstTranslation);
 		}
 		else
 		{
-			FVector2D SrcTranslation = ElementWidget->RenderTransform.Translation;//GetTranslation(CurrentTranslationIndex);
+			FVector2D SrcTranslation = Overlay->RenderTransform.Translation;//GetTranslation(CurrentTranslationIndex);
 			FVector2D DstTranslation = GetTranslation(NextTranslationIndex);
 			FVector2D LerpTranslation;
-			LerpTranslation.X = UKismetMathLibrary::Lerp(SrcTranslation.X, DstTranslation.X, Rate);
-			LerpTranslation.Y = UKismetMathLibrary::Lerp(SrcTranslation.Y, DstTranslation.Y, Rate);
-			ElementWidget->SetRenderTranslation(LerpTranslation);
+			LerpTranslation.X = UKismetMathLibrary::Lerp(SrcTranslation.X, DstTranslation.X, GlobalRate);
+			LerpTranslation.Y = UKismetMathLibrary::Lerp(SrcTranslation.Y, DstTranslation.Y, GlobalRate);
+			Overlay->SetRenderTranslation(LerpTranslation);
 		}		
 
 		// Scale
+		float ScaleRate = GlobalRate;
 		if(NextTranslationIndex == MainTranslationIndex)
 		{
-			FVector2D LerpScale;
-			LerpScale.X = LerpScale.Y = UKismetMathLibrary::Lerp(ElementWidget->RenderTransform.Scale.X, MainScale, Rate);
-			ElementWidget->SetRenderScale(LerpScale);
-
-			if (Rate >= ChangeMainTime)
+			if (MainScaleCurve != nullptr)
 			{
-				ElementWidget->SetMain(true);
-				UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(ElementWidget);
+				ScaleRate = MainScaleCurve->GetFloatValue(GlobalRate);
+			}
+
+			FVector2D LerpScale;
+			LerpScale.X = LerpScale.Y = UKismetMathLibrary::Lerp(Element->RenderTransform.Scale.X, MainScale, ScaleRate);
+			Element->SetRenderScale(LerpScale);
+
+			if (ScaleRate >= ChangeMainTime)
+			{
+				Element->SetMain(true);
+				UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Overlay);
 				CanvasPanelSlot->SetZOrder(1);
 			}
 		}
 		else
 		{
-			if (ElementWidget->RenderTransform.Scale.X != 1.f)
+			if (Element->RenderTransform.Scale.X != 1.f)
 			{
 				FVector2D LerpScale;
-				LerpScale.X = LerpScale.Y = UKismetMathLibrary::Lerp(ElementWidget->RenderTransform.Scale.X, 1.f, Rate);
-				ElementWidget->SetRenderScale(LerpScale);
+				LerpScale.X = LerpScale.Y = UKismetMathLibrary::Lerp(Element->RenderTransform.Scale.X, 1.f, ScaleRate);
+				Element->SetRenderScale(LerpScale);
 			}
-			if (Rate >= ChangeMainTime)
+			if (ScaleRate >= ChangeMainTime)
 			{
-				ElementWidget->SetMain(false);
-				UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(ElementWidget);
+				Element->SetMain(false);
+				UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Overlay);
 				CanvasPanelSlot->SetZOrder(0);
 			}
 		}
 	}
 
 	// Finish
-	if (Rate >= 1.f)
+	if (GlobalRate >= 1.f)
 	{
 		if (IsLeft)
 		{
@@ -358,8 +386,11 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 		for (auto ElementWidget : ElementList)
 		{
 			bool bSwap = false;
-			int32 CurrentTranslationIndex = ElementWidget->GetTranslationIndex();
-			int32 ModifyTranslationIndex = IsLeft ? ElementWidget->GetTranslationIndex() + 1 : ElementWidget->GetTranslationIndex() - 1;
+			UOverlay* Overlay = ElementWidget.Overlay;
+			UDMUISlot_SlideElement* Element = ElementWidget.SlideElement;
+
+			int32 CurrentTranslationIndex = Element->GetTranslationIndex();
+			int32 ModifyTranslationIndex = IsLeft ? Element->GetTranslationIndex() + 1 : Element->GetTranslationIndex() - 1;
 			if (IsLeft && CurrentTranslationIndex == ElementCount - 1)
 			{
 				ModifyTranslationIndex = 0;	// 왼쪽입력시 슬라이드는 오른쪽으로 이동한다. 제일 오른쪽은 제일 왼쪽으로 이동
@@ -373,20 +404,20 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 
 			if (ModifyTranslationIndex == MainTranslationIndex)
 			{
-				ElementWidget->SetMain(true);
+				Element->SetMain(true);
 			}
 			else
 			{
-				ElementWidget->SetMain(false);
+				Element->SetMain(false);
 			}
 
-			ElementWidget->SetTranslationIndex(ModifyTranslationIndex);
+			Element->SetTranslationIndex(ModifyTranslationIndex);
 			FVector2D DstTranslation = GetTranslation(ModifyTranslationIndex);
-			ElementWidget->SetRenderTranslation(DstTranslation);
+			Overlay->SetRenderTranslation(DstTranslation);
 
 			if (bSwap)
 			{
-				UpdateElement(ElementWidget);
+				UpdateElement(ElementWidget.SlideElement);
 			}
 		}		
 
@@ -449,7 +480,7 @@ void UDMUISlot_SlideList::UpdateElementList(const bool IN InInit)
 
 	for (auto ElementWidget : ElementList)
 	{
-		UpdateElement(ElementWidget);
+		UpdateElement(ElementWidget.SlideElement);
 	}
 }
 
@@ -465,15 +496,10 @@ UDMUISlot_SlideElement* UDMUISlot_SlideList::GetElement(const int32 IN InTransla
 {
 	for (auto ElementWidget : ElementList)
 	{
-		if (ElementWidget->GetTranslationIndex() == InTranslationIndex)
-			return ElementWidget;
+		if (ElementWidget.SlideElement->GetTranslationIndex() == InTranslationIndex)
+			return ElementWidget.SlideElement;
 	}
 	return nullptr;
-}
-
-void UDMUISlot_SlideList::SetupElement(FString IN InPath)
-{
-	SlideElementPath = InPath;
 }
 
 void UDMUISlot_SlideList::OnSlideChanged(int32 InDataIndex)
@@ -481,4 +507,24 @@ void UDMUISlot_SlideList::OnSlideChanged(int32 InDataIndex)
 	// + Delegate
 
 
+}
+
+bool FDMSlideElementWidget::CreateElement(UUserWidget* InOwner, const FString IN InElementWidgetPath)
+{
+	UWidgetTree* WidgetTree = InOwner->WidgetTree;
+
+	Overlay = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT(""));
+	if (Overlay == nullptr)
+		return false;
+
+	SlideElement = DMUIManager::Get()->CreateUISyncFullPath_Casted<UDMUISlot_SlideElement>(InElementWidgetPath);
+	if (SlideElement)
+	{
+		Overlay->SetVisibility(ESlateVisibility::Hidden);
+		Overlay->AddChildToOverlay(SlideElement);
+// 		UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(SlideElement);
+// 		CanvasPanelSlot->SetAlignment()
+		return true;
+	}
+	return false;
 }

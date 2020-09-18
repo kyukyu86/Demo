@@ -42,8 +42,11 @@ public:
 	bool IsAsyncLoadingPanel(const EDMPanelKind IN InKind);
 
 	UUserWidget* CreateUISync(FString IN InPath);
+	UUserWidget* CreateUISyncFullPath(FString IN InPath);
 	template<class T>
 	T* CreateUISync_Casted(FString IN InPath);
+	template<class T>
+	T* CreateUISyncFullPath_Casted(FString IN InPath);
 };
 
 
@@ -51,6 +54,16 @@ template<class T>
 T* DMUIManager::CreateUISync_Casted(FString IN InPath)
 {
 	UUserWidget* CreatedWidget = CreateUISync(InPath);
+	if (CreatedWidget == nullptr)
+		return nullptr;
+
+	return Cast<T>(CreatedWidget);
+}
+
+template<class T>
+T* DMUIManager::CreateUISyncFullPath_Casted(FString IN InPath)
+{
+	UUserWidget* CreatedWidget = CreateUISyncFullPath(InPath);
 	if (CreatedWidget == nullptr)
 		return nullptr;
 

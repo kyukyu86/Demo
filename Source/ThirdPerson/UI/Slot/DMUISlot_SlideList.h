@@ -16,6 +16,17 @@ enum class EDMSlideStartType : uint8
 	Tail,
 };
 
+USTRUCT(BlueprintType)
+struct FDMSlideElementWidget
+{
+	GENERATED_BODY();
+
+	class UOverlay* Overlay = nullptr;
+	class UDMUISlot_SlideElement* SlideElement = nullptr;	
+
+	bool CreateElement(UUserWidget* InOwner, const FString IN InElementWidgetPath);
+};
+
 // Test
 USTRUCT(BlueprintType)
 struct FDMCustomSlideData
@@ -38,8 +49,10 @@ private:
 		class UCanvasPanel* CanvasPanelMain;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		TArray<class UDMUISlot_SlideElement*> ElementList;
+		TArray<FDMSlideElementWidget> ElementList;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Normal", meta = (AllowPrivateAccess = "true", Tooltip = "Element widget reference full path"))
+		FString ElementWidgetPath = "";
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Normal", meta = (AllowPrivateAccess = "true"))
 		EDMSlideStartType SlideStartType = EDMSlideStartType::Middle;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Normal", meta = (AllowPrivateAccess = "true", ClampMin = "1"))
@@ -48,21 +61,24 @@ private:
 		float ElementSpace = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|MainSlot", meta = (AllowPrivateAccess = "true", ClampMin = "1"))
 		float MainScale = 1.5f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|MainSlot", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|MainSlot", meta = (AllowPrivateAccess = "true", Tooltip = "Main slot translation offset"))
 		float MainOffset = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|MainSlot", meta = (AllowPrivateAccess = "true", Tooltip = "For test"))
+		float MainCalcScale = 2.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|MainSlot", meta = (AllowPrivateAccess = "true", Tooltip = "Scaling curve float"))
+		UCurveFloat* MainScaleCurve;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Move", meta = (AllowPrivateAccess = "true", ClampMin = "0.2"))
 		float NormalMoveTime = 1.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Move", meta = (AllowPrivateAccess = "true", ClampMin = "0.2"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Move", meta = (AllowPrivateAccess = "true", ClampMin = "0.2", Tooltip = "When repeat input"))
 		float RepeatMoveTime = 0.5f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Move", meta = (AllowPrivateAccess = "true", ClampMin = "0.2"))
-		float ChangeMainTime = 0.4f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Test", meta = (AllowPrivateAccess = "true", ClampMin = "0.2"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Move", meta = (AllowPrivateAccess = "true", ClampMin = "0.2", Tooltip = "For change ZOrder"))
+		float ChangeMainTime = 0.4f;	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SlideList|Test", meta = (AllowPrivateAccess = "true", ClampMin = "0.2", Tooltip = "For test"))
 		TArray<FDMCustomSlideData> TestDataList;	
 
 private:
 	bool IsSetted = false;		
 	bool IsMadeList = false;
-	FString SlideElementPath = "";
 	// Translation
 	int32 MainTranslationIndex = 0;
 	int32 NextMainTranslationIndex = 0;
@@ -104,7 +120,6 @@ protected:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
 public:
-	void SetupElement(FString IN InPath);
 	void OnSlideChanged(int32 InDataIndex);
 
 

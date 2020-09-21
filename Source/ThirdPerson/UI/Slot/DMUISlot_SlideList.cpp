@@ -226,6 +226,8 @@ void UDMUISlot_SlideList::UpdateElement(class UDMUISlot_SlideElement* IN InEleme
 	else
 	{
 		InElement->SetData(DataIndex);
+
+		OnSlideSideChangedDelegate.ExecuteIfBound(DataIndex);
 	}
 }
 
@@ -430,7 +432,7 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 		{
 			AccumulateMoveTime = 0.f;
 
-			OnSlideChanged(MainTranslationDataIndex);
+			OnSlideMainChangedDelegate.ExecuteIfBound(MainTranslationDataIndex);
 		}
 	}
 }
@@ -500,13 +502,6 @@ UDMUISlot_SlideElement* UDMUISlot_SlideList::GetElement(const int32 IN InTransla
 			return ElementWidget.SlideElement;
 	}
 	return nullptr;
-}
-
-void UDMUISlot_SlideList::OnSlideChanged(int32 InDataIndex)
-{
-	// + Delegate
-
-
 }
 
 bool FDMSlideElementWidget::CreateElement(UUserWidget* InOwner, const FString IN InElementWidgetPath)

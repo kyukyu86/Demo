@@ -6,7 +6,8 @@
 #include "../Base/DMUISlot.h"
 #include "DMUISlot_SlideList.generated.h"
 
-DECLARE_DELEGATE_OneParam(FDMSlideChanged, int32);
+DECLARE_DELEGATE_OneParam(FDMSlideMainChanged, int32);
+DECLARE_DELEGATE_OneParam(FDMSlideSideChanged, int32);
 
 UENUM(BlueprintType)
 enum class EDMSlideStartType : uint8
@@ -95,6 +96,9 @@ private:
 	int32 MoveStep = 0;	
 	float AccumulateMoveTime = 0.f;
 
+	FDMSlideMainChanged OnSlideMainChangedDelegate;		// return Main(Middle) Data Index
+	FDMSlideSideChanged OnSlideSideChangedDelegate;		// return Sides(Head,Tail) Data Index
+
 private:
 	void Setup();
 	void MakeElementList();
@@ -120,8 +124,6 @@ protected:
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 
 public:
-	void OnSlideChanged(int32 InDataIndex);
-
 
 	// Test
 	TArray<FDMCustomSlideData>& GetTestData() { return TestDataList; }

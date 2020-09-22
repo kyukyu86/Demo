@@ -17,6 +17,13 @@ enum class EDMSlideStartType : uint8
 	Tail,
 };
 
+enum class EDMSlideMoveType : uint8
+{
+	None,
+	Left,
+	Right
+};
+
 USTRUCT(BlueprintType)
 struct FDMSlideElementWidget
 {
@@ -81,7 +88,6 @@ private:
 	bool IsSetted = false;		
 	bool IsMadeList = false;
 	// Translation
-	int32 MainTranslationIndex = 0;
 	int32 NextMainTranslationIndex = 0;
 	TArray<FVector2D> TranslationList;
 	// Data
@@ -89,12 +95,13 @@ private:
 	int32 MainTranslationDataIndex = 0;
 	int32 DataSize = 0;
 	// Move
-	bool IsMove = false;
-	bool IsLeft = false;
-	bool IsMoveComplete = false;
+	EDMSlideMoveType MoveType = EDMSlideMoveType::None;
+	bool IsMoving = false;
 	float DstMoveTime = 0.f;
 	int32 MoveStep = 0;	
 	float AccumulateMoveTime = 0.f;
+
+	bool IsRevertTranslation = false;
 
 	FDMSlideMainChanged OnSlideMainChangedDelegate;		// return Main(Middle) Data Index
 	FDMSlideSideChanged OnSlideSideChangedDelegate;		// return Sides(Head,Tail) Data Index
@@ -108,13 +115,20 @@ private:
 	class UDMUISlot_SlideElement* GetElement(const int32 IN InTranslationIndex);
 	FVector2D GetTranslation(const int32 IN InTranslationIndex);	
 
-	void OnMove(const bool IN InLeft);
+	void OnMove(const EDMSlideMoveType IN InMoveType);
 	void UpdateMove(const float IN InDeltaTime);
 	void ReleaseMove();
 
 	void UpdateElement(class UDMUISlot_SlideElement* IN InElement);
 	void UpdateElementList(const bool IN InInit);					// 리스트 갱신
 	void ChangeElementListByDataIndex(const int32 IN InDataIndex);	// 중앙의 데이터 인덱스를 강제 갱신
+
+	FORCEINLINE int32 GetMainTranslationIndex()
+	{
+		return (ElementCount - 1) / 2;
+	}
+
+	void TestDebuggingLog(FString IN InLog);
 
 protected:
 	virtual void NativePreConstruct() override;

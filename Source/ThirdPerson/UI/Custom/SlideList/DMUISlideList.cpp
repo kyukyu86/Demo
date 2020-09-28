@@ -1,10 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "DMUISlot_SlideList.h"
-#include "DMUISlot_SlideElement.h"
-
-#include "../../Manager/DMUIManager.h"
+#include "DMUISlideList.h"
+#include "DMUISlideElement.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
 
@@ -12,21 +10,34 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/Engine.h"
-#include "DMUISlot_CustomSlideElement.h"
 #include "Components/Overlay.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/OverlaySlot.h"
+#include "UObject/UObjectBaseUtility.h"
+#include "../../../Manager/DMUIManager.h"
 
 
 //#define DEF_SLIDE_LIST_DEBUG
 
-void UDMUISlot_SlideList::NativePreConstruct()
+void UDMUISlideList::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 		
+#ifdef WITH_EDITOR
+	if (IsDesignTime())
+	{
+		SetDataSize(TestDataSize);
+		Setup();
+	}
+	else
+	{
+		SetDataSize(TestDataSize);	// 임시
+	}
+#else//WITH_EDITOR
+#endif//WITH_EDITOR
 }
 
-void UDMUISlot_SlideList::NativeConstruct()
+void UDMUISlideList::NativeConstruct()
 {
 	Super::NativeConstruct();
 
@@ -34,22 +45,25 @@ void UDMUISlot_SlideList::NativeConstruct()
 
 }
 
-void UDMUISlot_SlideList::NativeDestruct()
+void UDMUISlideList::NativeDestruct()
 {
-	Super::NativeDestruct();
+	SetFocusableInputMode(false);
+	ReleaseElementList();
 
+	Super::NativeDestruct();
 }
 
-void UDMUISlot_SlideList::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void UDMUISlideList::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
+	// [ 2020-9-23 : kyu ] DesiredSize문제로 Construct가 아닌 Tick에서 하나 이상의 프리패스가 지난 후에 정상화 되기때문에 Tick에서 한번만 처리해준다.
 	Setup();
 
 	UpdateMove(InDeltaTime);
 }
 
-FReply UDMUISlot_SlideList::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+FReply UDMUISlideList::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (InKeyEvent.IsRepeat())
 		return FReply::Unhandled();
@@ -68,9 +82,9 @@ FReply UDMUISlot_SlideList::NativeOnKeyDown(const FGeometry& InGeometry, const F
 	return FReply::Unhandled();
 }
 
-void UDMUISlot_SlideList::Setup()
+void UDMUISlideList::Setup()
 {
-	if (ElementWidgetPath.IsEmpty())
+	if (ElementWidgetClass == nullptr)
 		return;
 
 	if (IsSetted)
@@ -79,11 +93,27 @@ void UDMUISlot_SlideList::Setup()
 	if (IsMadeList == false)
 		MakeElementList();
 
+	if (IsMadeList == false)
+		return;
+
 	if (ElementList.IsValidIndex(0) == false || ElementList[0].SlideElement->IsValidLowLevel() == false)
 		return;
 
+#ifdef WITH_EDITOR
+	if (IsDesignTime())
+	{
+		if (TestElementDesiredSize.IsZero())
+			return;
+	}
+	else
+	{
+		if (ElementList[0].SlideElement->GetDesiredSize().IsZero())
+			return;
+	}
+#else//WITH_EDITOR
 	if (ElementList[0].SlideElement->GetDesiredSize().IsZero())
 		return;
+#endif//WITH_EDITOR	
 
 	SetupTransitionList();
 	SetupElementList();
@@ -93,43 +123,75 @@ void UDMUISlot_SlideList::Setup()
 	IsSetted = true;
 }
 
-void UDMUISlot_SlideList::MakeElementList()
+void UDMUISlideList::MakeElementList()
 {
-	// Make List
-	for (int32 i = 0; i < ElementCount; ++i)
+	if (ElementList.Num() != ElementCount)
 	{
-		FDMSlideElementWidget NewElement;
-		if (NewElement.CreateElement(this, ElementWidgetPath) == false)
+		// Make List
+		for (int32 i = 0; i < ElementCount; ++i)
+		{
+			FDMSlideElementWidget NewElement;
+			ElementList.Add(NewElement);
+		}
+	}
+
+	// for Async
+	bool bCreateCompletedAll = true;
+	for (auto& ElementWidget : ElementList)
+	{
+		if (ElementWidget.CreateElement(this, ElementWidgetClass) == false)
 		{
 			checkf(false, TEXT("Creat Failure"));
 			return;
 		}
 
-		NewElement.SlideElement->SetParent(this);
-		CanvasPanelMain->AddChildToCanvas(NewElement.Overlay);
-		ElementList.Add(NewElement);
-
-		FVector2D DesiredSizeThis = this->TakeWidget()->GetDesiredSize();
-		FVector2D DesiredSizeElement = NewElement.SlideElement->TakeWidget()->GetDesiredSize();
-		float Width = DesiredSizeThis.X;
-		float Height = DesiredSizeThis.Y;
+		// Wait for Async Load Completed
+		if (ElementWidget.IsCreateCompleted())
+		{
+			ElementWidget.SlideElement->SetParent(this);
+			CanvasPanelMain->AddChildToCanvas(ElementWidget.Overlay);
+		}
+		else
+		{
+			bCreateCompletedAll = false;
+		}
 	}
 
-	IsMadeList = true;
-
-	// Test. 외부에서 지정해줘야한다.
-	DataSize = TestDataList.Num();
+	if (bCreateCompletedAll)
+	{
+		IsMadeList = true;
+	}
 }
 
-void UDMUISlot_SlideList::SetupTransitionList()
+void UDMUISlideList::ReleaseElementList()
 {
-	UDMUISlot_SlideElement* ElementWidget = ElementList[0].SlideElement;
-	FVector2D ChildSize = ElementWidget->GetDesiredSize();
+	for (auto& ElementWidget : ElementList)
+	{
+		ElementWidget.ReleaseElement();
+	}
+	ElementList.Empty();
+}
+
+void UDMUISlideList::SetupTransitionList()
+{
+	if (ElementList.IsValidIndex(0) == false || ElementList[0].SlideElement == nullptr)
+		return;
+
+	UDMUISlideElement* ElementWidget = ElementList[0].SlideElement;
+	FVector2D ChildSize = ElementWidget->GetDesiredSize(); 
+#ifdef WITH_EDITOR
+	if (IsDesignTime())
+		ChildSize = TestElementDesiredSize;
+#else//WITH_EDITOR
+#endif//WITH_EDITOR
 
 	UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(this);
+	if (CanvasPanelSlot == nullptr)
+		return;
+
 	FVector2D ParentSize = CanvasPanelSlot->GetSize();
 	FVector2D ParentMiddlePosition = ParentSize / 2.0f;
-
+		
 	for (int32 i = 0; i < ElementCount; ++i)
 	{
 		FVector2D ResultPosition = FVector2D::ZeroVector;
@@ -166,13 +228,13 @@ void UDMUISlot_SlideList::SetupTransitionList()
 	}
 }
 
-void UDMUISlot_SlideList::SetupElementList()
+void UDMUISlideList::SetupElementList()
 {
 	int32 Index = 0;
 	for (auto ElementWidget : ElementList)
 	{		
 		UOverlay* Overlay = ElementWidget.Overlay;
-		UDMUISlot_SlideElement* SlideElement = ElementWidget.SlideElement;
+		UDMUISlideElement* SlideElement = ElementWidget.SlideElement;
 
 		// Data
 		SlideElement->SetIndex(Index);
@@ -191,6 +253,11 @@ void UDMUISlot_SlideList::SetupElementList()
 		UCanvasPanelSlot* OverlayCanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Overlay);
 		OverlayCanvasPanelSlot->SetPosition(FVector2D::ZeroVector);
 		OverlayCanvasPanelSlot->SetSize(SlideElement->GetDesiredSize());
+#ifdef WITH_EDITOR
+		if (IsDesignTime())
+			OverlayCanvasPanelSlot->SetSize(TestElementDesiredSize);
+#else//WITH_EDITOR
+#endif//WITH_EDITOR
 
 		if (Index == GetMainTranslationIndex())	// 메인은 메인설정
 		{
@@ -207,16 +274,7 @@ void UDMUISlot_SlideList::SetupElementList()
 	}
 }
 
-FVector2D UDMUISlot_SlideList::GetTranslation(const int32 IN InTranslationIndex)
-{
-	if (TranslationList.IsValidIndex(InTranslationIndex))
-	{
-		return TranslationList[InTranslationIndex];
-	}
-	return FVector2D::ZeroVector;
-}
-
-void UDMUISlot_SlideList::UpdateElement(class UDMUISlot_SlideElement* IN InElement)
+void UDMUISlideList::UpdateElement(class UDMUISlideElement* IN InElement)
 {
 	int32 DataIndex = StartingDataIndex + InElement->GetTranslationIndex();
 	if (DataIndex < 0 || DataIndex > DataSize - 1)
@@ -225,13 +283,20 @@ void UDMUISlot_SlideList::UpdateElement(class UDMUISlot_SlideElement* IN InEleme
 	}
 	else
 	{
+#ifdef WITH_EDITOR
+		// [ 2020-9-24 : kyu ] DesignTime에는 TestData를 얻어오지 못해 Default만 출력될것
+		if (IsDesignTime())
+			return;
+#else//WITH_EDITOR
+#endif//WITH_EDITOR
+
 		InElement->SetData(DataIndex);
 
 		OnSlideSideChangedDelegate.ExecuteIfBound(DataIndex);
 	}
 }
 
-void UDMUISlot_SlideList::OnMove(const EDMSlideMoveType IN InMoveType)
+void UDMUISlideList::OnMove(const EDMSlideMoveType IN InMoveType)
 {
 	if (IsSetted == false)
 		return;
@@ -307,7 +372,7 @@ void UDMUISlot_SlideList::OnMove(const EDMSlideMoveType IN InMoveType)
 	MoveType = InMoveType;
 }
 
-void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
+void UDMUISlideList::UpdateMove(const float IN InDeltaTime)
 {
 	if (IsSetted == false)
 		return;
@@ -342,7 +407,7 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 	for (auto ElementWidget : ElementList)
 	{
 		UOverlay* Overlay = ElementWidget.Overlay;
-		UDMUISlot_SlideElement* Element = ElementWidget.SlideElement;
+		UDMUISlideElement* Element = ElementWidget.SlideElement;
 
 		// Translation
 		int32 CurrentTranslationIndex = Element->GetTranslationIndex();
@@ -439,7 +504,7 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 		{
 			bool bSwap = false;
 			UOverlay* Overlay = ElementWidget.Overlay;
-			UDMUISlot_SlideElement* Element = ElementWidget.SlideElement;
+			UDMUISlideElement* Element = ElementWidget.SlideElement;
 
 			int32 CurrentTranslationIndex = Element->GetTranslationIndex();
 			int32 ModifyTranslationIndex = CurrentTranslationIndex;
@@ -508,7 +573,7 @@ void UDMUISlot_SlideList::UpdateMove(const float IN InDeltaTime)
 	}
 }
 
-void UDMUISlot_SlideList::ReleaseMove()
+void UDMUISlideList::ReleaseMove()
 {
 	AccumulateMoveTime = 0.f;
 	IsMoving = false;
@@ -517,7 +582,7 @@ void UDMUISlot_SlideList::ReleaseMove()
 	IsRevertTranslation = false;
 }
 
-void UDMUISlot_SlideList::UpdateElementList(const bool IN InInit)
+void UDMUISlideList::UpdateElementList(const bool IN InInit)
 {
 	if (InInit)
 	{
@@ -557,7 +622,7 @@ void UDMUISlot_SlideList::UpdateElementList(const bool IN InInit)
 	}
 }
 
-void UDMUISlot_SlideList::ChangeElementListByDataIndex(const int32 IN InDataIndex)
+void UDMUISlideList::ChangeElementListByDataIndex(const int32 IN InDataIndex)
 {
 	MainTranslationDataIndex = InDataIndex;
 	StartingDataIndex = MainTranslationDataIndex - (TranslationList.Num() / 2);
@@ -565,7 +630,7 @@ void UDMUISlot_SlideList::ChangeElementListByDataIndex(const int32 IN InDataInde
 	UpdateElementList(false);
 }
 
-void UDMUISlot_SlideList::TestDebuggingLog(FString IN InLog)
+void UDMUISlideList::TestDebuggingLog(FString IN InLog)
 {
 #ifdef DEF_SLIDE_LIST_DEBUG
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, InLog);
@@ -573,7 +638,7 @@ void UDMUISlot_SlideList::TestDebuggingLog(FString IN InLog)
 #endif//DEF_SLIDE_LIST_DEBUG
 }
 
-UDMUISlot_SlideElement* UDMUISlot_SlideList::GetElement(const int32 IN InTranslationIndex)
+UDMUISlideElement* UDMUISlideList::GetElement(const int32 IN InTranslationIndex)
 {
 	for (auto ElementWidget : ElementList)
 	{
@@ -583,22 +648,68 @@ UDMUISlot_SlideElement* UDMUISlot_SlideList::GetElement(const int32 IN InTransla
 	return nullptr;
 }
 
-bool FDMSlideElementWidget::CreateElement(UUserWidget* InOwner, const FString IN InElementWidgetPath)
+bool FDMSlideElementWidget::CreateElement(UUserWidget* InOwner, TSubclassOf<class UDMUISlideElement> InElementWidget)
 {
+	if (bIsCreateCompleted)
+		return true;
+
+	if (strAsyncKey.IsEmpty() == false)
+		return true;
+
 	UWidgetTree* WidgetTree = InOwner->WidgetTree;
 
 	Overlay = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass(), TEXT(""));
 	if (Overlay == nullptr)
 		return false;
 
-	SlideElement = DMUIManager::Get()->CreateUISyncFullPath_Casted<UDMUISlot_SlideElement>(InElementWidgetPath);
-	if (SlideElement)
+#ifdef WITH_EDITOR
+	if (InOwner->IsDesignTime())
 	{
-		Overlay->SetVisibility(ESlateVisibility::Hidden);
-		Overlay->AddChildToOverlay(SlideElement);
-// 		UCanvasPanelSlot* CanvasPanelSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(SlideElement);
-// 		CanvasPanelSlot->SetAlignment()
-		return true;
+		SlideElement = WidgetTree->ConstructWidget<UDMUISlideElement>(InElementWidget.Get(), TEXT(""));
+		if (SlideElement)
+		{
+			bIsCreateCompleted = true;
+			Overlay->SetVisibility(ESlateVisibility::Hidden);
+			Overlay->AddChildToOverlay(SlideElement);
+			return true;
+		}
 	}
+	else
+	{
+		FString WidgetPath = InElementWidget->GetPathName();	// 풀경로/이름.이름_C
+		strAsyncKey = DMUIManager::Get()->CreateUIASyncFullPath(WidgetPath, FDMSlotUILoadCompletedDelegate::CreateRaw(this, &FDMSlideElementWidget::OnCreateCompleted));
+		if (strAsyncKey.IsEmpty() == false)
+			return true;
+	}
+#else//WITH_EDITOR
+	FString WidgetPath = InElementWidget->GetPathName();	// 풀경로/이름.이름_C
+	strAsyncKey = DMUIManager::Get()->CreateUIASyncFullPath(WidgetPath, FDMSlotUILoadCompletedDelegate::CreateRaw(this, &FDMSlideElementWidget::OnCreateCompleted));
+	if (strAsyncKey.IsEmpty() == false)
+		return true;
+#endif//WITH_EDITOR
+
 	return false;
+}
+
+void FDMSlideElementWidget::OnCreateCompleted(UDMUISlot* IN InCreatedSlot)
+{
+	if (InCreatedSlot)
+	{
+		SlideElement = Cast<UDMUISlideElement>(InCreatedSlot);
+		if (SlideElement)
+		{
+			strAsyncKey.Empty();
+			bIsCreateCompleted = true;
+			Overlay->SetVisibility(ESlateVisibility::Hidden);
+			Overlay->AddChildToOverlay(SlideElement);
+		}
+	}
+}
+
+void FDMSlideElementWidget::ReleaseElement()
+{
+	if (strAsyncKey.IsEmpty())
+		return;
+
+	DMAsyncLoadManager::Get()->CancelAsyncLoad(strAsyncKey);
 }

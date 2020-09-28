@@ -3,18 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../Base/DMUISlot.h"
-#include "DMUISlot_SlideElement.generated.h"
+#include "../../Base/DMUISlot.h"
+#include "DMUISlideElement.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class THIRDPERSON_API UDMUISlot_SlideElement : public UDMUISlot
+class THIRDPERSON_API UDMUISlideElement : public UDMUISlot
 {
 	GENERATED_BODY()
 
-	friend class UDMUISlot_SlideList;
+	friend class UDMUISlideList;
 
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
@@ -28,7 +28,7 @@ private:
 	bool bIsMain = false;
 
 protected:
-	class UDMUISlot_SlideList* ParentSlideListWidget = nullptr;
+	class UDMUISlideList* ParentSlideListWidget = nullptr;
 
 protected:
 	virtual void NativeConstruct() override;
@@ -51,5 +51,5 @@ public:
 
 
 	// Test
-	void SetParent(class UDMUISlot_SlideList* InParent) { ParentSlideListWidget = InParent; }
+	void SetParent(class UDMUISlideList* InParent) { ParentSlideListWidget = InParent; }
 };

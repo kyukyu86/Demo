@@ -4,8 +4,8 @@
 #include "DMUISlot_CustomSlideElement.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
-#include "DMUISlot_SlideList.h"
 #include "../../Util/DMUIUtil.h"
+#include "../Custom/SlideList/DMUISlideList.h"
 
 void UDMUISlot_CustomSlideElement::NativeConstruct()
 {
@@ -27,7 +27,7 @@ void UDMUISlot_CustomSlideElement::NativeTick(const FGeometry& MyGeometry, float
 
 void UDMUISlot_CustomSlideElement::SetMain(const bool IN InSet)
 {
-	UDMUISlot_SlideElement::SetMain(InSet);
+	UDMUISlideElement::SetMain(InSet);
 
 	Image_Main->SetVisibility(InSet ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
 }

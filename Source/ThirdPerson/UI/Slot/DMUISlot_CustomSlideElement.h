@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../Slot/DMUISlot_SlideElement.h"
+#include "../Custom/SlideList/DMUISlideElement.h"
 #include "DMUISlot_CustomSlideElement.generated.h"
 
 
 UCLASS()
-class THIRDPERSON_API UDMUISlot_CustomSlideElement : public UDMUISlot_SlideElement
+class THIRDPERSON_API UDMUISlot_CustomSlideElement : public UDMUISlideElement
 {
 	GENERATED_BODY()
 	

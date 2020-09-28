@@ -43,10 +43,14 @@ public:
 
 	UUserWidget* CreateUISync(FString IN InPath);
 	UUserWidget* CreateUISyncFullPath(FString IN InPath);
+	FString CreateUIASyncFullPath(FString& IN InFullPath, const FDMSlotUILoadCompletedDelegate IN InDelegate);
 	template<class T>
 	T* CreateUISync_Casted(FString IN InPath);
 	template<class T>
 	T* CreateUISyncFullPath_Casted(FString IN InPath);
+	UUserWidget* CreateUISyncClass(UClass* InClass);
+	template<class T>
+	T* CreateUISyncClass_Casted(UClass* InClass);
 };
 
 
@@ -64,6 +68,16 @@ template<class T>
 T* DMUIManager::CreateUISyncFullPath_Casted(FString IN InPath)
 {
 	UUserWidget* CreatedWidget = CreateUISyncFullPath(InPath);
+	if (CreatedWidget == nullptr)
+		return nullptr;
+
+	return Cast<T>(CreatedWidget);
+}
+
+template<class T>
+T* DMUIManager::CreateUISyncClass_Casted(UClass* InClass)
+{
+	UUserWidget* CreatedWidget = CreateUISyncClass(InClass);
 	if (CreatedWidget == nullptr)
 		return nullptr;
 

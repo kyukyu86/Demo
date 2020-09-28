@@ -148,7 +148,6 @@ UUserWidget* DMUIManager::CreateUISyncFullPath(FString IN InPath)
 {
 	UUserWidget* pWidget = nullptr;
 	FString strPath = InPath;
-	strPath += "_C";
 	FStringClassReference UIClassReference(*strPath);
 	UClass* UIClass = nullptr;
 	if (UIClassReference.TryLoadClass<UUserWidget>() != nullptr)
@@ -162,6 +161,28 @@ UUserWidget* DMUIManager::CreateUISyncFullPath(FString IN InPath)
 	if (UIClass)
 	{
 		pWidget = CreateWidget<UUserWidget>(UDMGameInstance::GetGameInstance()->GetWorld(), UIClass);
+		if (pWidget == nullptr)
+			return nullptr;
+	}
+	return pWidget;
+}
+
+FString DMUIManager::CreateUIASyncFullPath(FString& IN InFullPath, const FDMSlotUILoadCompletedDelegate IN InDelegate)
+{
+	auto OnSlotAsyncLoadCompleted = FDMCompleteAsyncLoad::CreateLambda([=](UObject* InObject, FString InKey)
+	{
+		InDelegate.ExecuteIfBound(Cast<UDMUISlot>(InObject));
+	});
+
+	return DMAsyncLoadManager::Get()->AsyncCreateWidget(InFullPath, OnSlotAsyncLoadCompleted);
+}
+
+UUserWidget* DMUIManager::CreateUISyncClass(UClass* InClass)
+{
+	UUserWidget* pWidget = nullptr;
+	if (InClass)
+	{
+		pWidget = CreateWidget<UUserWidget>(UDMGameInstance::GetGameInstance()->GetWorld(), InClass);
 		if (pWidget == nullptr)
 			return nullptr;
 	}

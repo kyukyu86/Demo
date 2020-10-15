@@ -17,7 +17,7 @@ FString FDMAsyncLoadTaskParam::GetHashKey(const FString& InHash)
 	int32 FoundIndex;
 	if (_Hash.FindLastChar('_', FoundIndex) == false)
 	{
-		return WRASYNCLOADMANAGER_INVALID;
+		return ASYNCLOADMANAGER_INVALID;
 	}
 
 	int32 HashLen = _Hash.Len();
@@ -103,13 +103,13 @@ FString DMAsyncLoadManager::AsyncSpawnActor(const FString& InFullPath, FDMComple
 	TSharedPtr<FStreamableHandle> HandleSharedPtr = this->RequestAsyncLoad(ResolvedFullPath);
 	if (HandleSharedPtr.IsValid() == false)
 	{
-		return WRASYNCLOADMANAGER_INVALID;
+		return ASYNCLOADMANAGER_INVALID;
 	}
 
 	TSharedRef<FStreamableHandle> HandleSharedRef = HandleSharedPtr.ToSharedRef();
 	if (HandleSharedRef->IsActive() == false)
 	{
-		return WRASYNCLOADMANAGER_INVALID;
+		return ASYNCLOADMANAGER_INVALID;
 	}
 
 	return this->AddAsyncLoadTaskParam(HandleSharedRef, ResolvedFullPath, EDMAsyncLoadObjectType::Actor, InCompleteDelegate)->Hash;
@@ -120,13 +120,13 @@ FString DMAsyncLoadManager::AsyncLoadAsset(const FString& InFullPath, FDMComplet
 	TSharedPtr<FStreamableHandle> HandleSharedPtr = this->RequestAsyncLoad(InFullPath);
 	if (HandleSharedPtr.IsValid() == false)
 	{
-		return WRASYNCLOADMANAGER_INVALID;
+		return ASYNCLOADMANAGER_INVALID;
 	}
 
 	TSharedRef<FStreamableHandle> HandleSharedRef = HandleSharedPtr.ToSharedRef();
 	if (HandleSharedRef->IsActive() == false)
 	{
-		return WRASYNCLOADMANAGER_INVALID;
+		return ASYNCLOADMANAGER_INVALID;
 	}
 
 	return this->AddAsyncLoadTaskParam(HandleSharedRef, InFullPath, EDMAsyncLoadObjectType::Asset, InCompleteDelegate)->Hash;
@@ -137,13 +137,13 @@ FString DMAsyncLoadManager::AsyncCreateWidget(const FString& InFullPath, FDMComp
 	TSharedPtr<FStreamableHandle> HandleSharedPtr = this->RequestAsyncLoad(InFullPath);
 	if (HandleSharedPtr.IsValid() == false)
 	{
-		return WRASYNCLOADMANAGER_INVALID;
+		return ASYNCLOADMANAGER_INVALID;
 	}
 
 	TSharedRef<FStreamableHandle> HandleSharedRef = HandleSharedPtr.ToSharedRef();
 	if (HandleSharedRef->IsActive() == false)
 	{
-		return WRASYNCLOADMANAGER_INVALID;
+		return ASYNCLOADMANAGER_INVALID;
 	}
 
 	return this->AddAsyncLoadTaskParam(HandleSharedRef, InFullPath, EDMAsyncLoadObjectType::Widget, InCompleteDelegate)->Hash;

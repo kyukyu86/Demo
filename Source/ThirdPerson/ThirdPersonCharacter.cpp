@@ -75,46 +75,6 @@ void AThirdPersonCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AThirdPersonCharacter::OnResetVR);
-
-
-	// Temp Input
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_1"), EInputEvent::IE_Pressed, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_1, EInputEvent::IE_Pressed);
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_1"), EInputEvent::IE_Released, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_1, EInputEvent::IE_Released);
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_2"), EInputEvent::IE_Pressed, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_2, EInputEvent::IE_Pressed);
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_2"), EInputEvent::IE_Released, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_2, EInputEvent::IE_Released);
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_3"), EInputEvent::IE_Pressed, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_3, EInputEvent::IE_Pressed);
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_3"), EInputEvent::IE_Released, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_3, EInputEvent::IE_Released);
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_4"), EInputEvent::IE_Pressed, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_4, EInputEvent::IE_Pressed);
-	PlayerInputComponent->BindAction<FDMBindingInputDelegate>(TEXT("Key_4"), EInputEvent::IE_Released, this, &AThirdPersonCharacter::OnInputEvent, EDMInput::Key_4, EInputEvent::IE_Released);
-
-
-}
-
-void AThirdPersonCharacter::OnInputEvent(const EDMInput IN InInputType, const EInputEvent IN InEventType)
-{
-	switch (InInputType)
-	{
-	case EDMInput::Key_1:
-	{
-
-	}
-	break;
-	case EDMInput::Key_2:
-	{
-
-	}
-	break;
-	case EDMInput::Key_3:
-	{
-
-	}
-	break;
-	case EDMInput::Key_4:
-	{
-
-	}
-	break;
-	}
 }
 
 void AThirdPersonCharacter::BuildComponents()

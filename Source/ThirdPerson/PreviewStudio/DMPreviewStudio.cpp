@@ -157,6 +157,17 @@ ADMPreviewStudio::ADMPreviewStudio()
 	}
 }
 
+void ADMPreviewStudio::UpdateLightChannel(class UMeshComponent* IN InMeshComp)
+{
+	if (InMeshComp)
+	{
+		InMeshComp->LightingChannels.bChannel0 = LightChannel == 0;
+		InMeshComp->LightingChannels.bChannel1 = LightChannel == 1;
+		InMeshComp->LightingChannels.bChannel2 = LightChannel == 2;
+		InMeshComp->MarkRenderStateDirty();
+	}
+}
+
 void ADMPreviewStudio::BeginPlay()
 {
 	Super::BeginPlay();
@@ -582,6 +593,13 @@ AActor* ADMPreviewStudio::GetDefaultActor()
 AActor* ADMPreviewStudio::GetCustomActor()
 {
 	return CustomActor;
+}
+
+void ADMPreviewStudio::AddActorInShowList(AActor* IN InActor)
+{
+	SceneCapture->ShowOnlyActors.Add(InActor);
+	SceneCapture->UpdateContent();
+	SceneCapture->CaptureScene();
 }
 
 void ADMPreviewStudio::UpdateScale()

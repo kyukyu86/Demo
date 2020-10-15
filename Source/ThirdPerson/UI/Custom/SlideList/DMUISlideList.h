@@ -38,7 +38,7 @@ public:
 	class UDMUISlideElement* SlideElement = nullptr;
 
 	bool CreateElement(UUserWidget* InOwner, TSubclassOf<class UDMUISlideElement> InElementWidget);
-	void OnCreateCompleted(UDMUISlot* IN InCreatedSlot);
+	void OnCreateCompleted(UObject* InObject, FString InAsyncKey);
 	bool IsCreateCompleted() { return bIsCreateCompleted; }
 	void ReleaseElement();
 };

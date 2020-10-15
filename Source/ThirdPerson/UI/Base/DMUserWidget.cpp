@@ -61,15 +61,15 @@ void UDMUserWidget::CollectWidgetAnimation()
 {
 	WidgetAnimationList.Empty();
 
-	UProperty* Prop = GetClass()->PropertyLink;
+	FProperty* Prop = GetClass()->PropertyLink;
 
 	// Run through all properties of this class to find any widget animations
 	while (Prop != nullptr)
 	{
 		// Only interested in object properties
-		if (Prop->GetClass() == UObjectProperty::StaticClass())
+		if (Prop->GetClass() == FObjectProperty::StaticClass())
 		{
-			UObjectProperty* ObjProp = Cast<UObjectProperty>(Prop);
+			FObjectProperty* ObjProp = CastField<FObjectProperty>(Prop);
 
 			// Only want the properties that are widget animations
 			if (ObjProp->PropertyClass == UWidgetAnimation::StaticClass())

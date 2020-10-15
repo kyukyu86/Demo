@@ -3,12 +3,16 @@
 #pragma once
 #include "../UI/Base/DMUISlot.h"
 
+DECLARE_DELEGATE_OneParam(FDMSlotUILoadCompletedDelegate, UDMUISlot*)
+
 UENUM(BlueprintType)
 enum class EDMPanelKind : uint8
 {
 	None,
 
 	Main,
+	Menu,
+	Inventory,
 };
 
 UENUM(BlueprintType)
@@ -19,4 +23,12 @@ enum class EDMSlotKind : uint8
 	Preview,
 };
 
-DECLARE_DELEGATE_OneParam(FDMSlotUILoadCompletedDelegate, UDMUISlot*)
+UENUM(Meta = (BitFlags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class EDMWidgetComponentFlag : uint8
+{
+	None = 0x0000,
+
+	Billboarrd = 0x0001,
+	Focusable = 0x0002,
+};
+ENUM_CLASS_FLAGS(EDMWidgetComponentFlag)

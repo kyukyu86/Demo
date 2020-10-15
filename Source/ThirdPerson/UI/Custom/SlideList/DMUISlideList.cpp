@@ -677,13 +677,13 @@ bool FDMSlideElementWidget::CreateElement(UUserWidget* InOwner, TSubclassOf<clas
 	else
 	{
 		FString WidgetPath = InElementWidget->GetPathName();	// 풀경로/이름.이름_C
-		strAsyncKey = DMUIManager::Get()->CreateUIASyncFullPath(WidgetPath, FDMSlotUILoadCompletedDelegate::CreateRaw(this, &FDMSlideElementWidget::OnCreateCompleted));
+		strAsyncKey = DMUIManager::Get()->CreateUIASyncFullPath(WidgetPath, FDMCompleteAsyncLoad::CreateRaw(this, &FDMSlideElementWidget::OnCreateCompleted));
 		if (strAsyncKey.IsEmpty() == false)
 			return true;
 	}
 #else//WITH_EDITOR
 	FString WidgetPath = InElementWidget->GetPathName();	// 풀경로/이름.이름_C
-	strAsyncKey = DMUIManager::Get()->CreateUIASyncFullPath(WidgetPath, FDMSlotUILoadCompletedDelegate::CreateRaw(this, &FDMSlideElementWidget::OnCreateCompleted));
+	strAsyncKey = DMUIManager::Get()->CreateUIASyncFullPath(WidgetPath, FDMCompleteAsyncLoad::CreateRaw(this, &FDMSlideElementWidget::OnCreateCompleted));
 	if (strAsyncKey.IsEmpty() == false)
 		return true;
 #endif//WITH_EDITOR
@@ -691,11 +691,12 @@ bool FDMSlideElementWidget::CreateElement(UUserWidget* InOwner, TSubclassOf<clas
 	return false;
 }
 
-void FDMSlideElementWidget::OnCreateCompleted(UDMUISlot* IN InCreatedSlot)
+void FDMSlideElementWidget::OnCreateCompleted(UObject* InObject, FString InAsyncKey)
 {
-	if (InCreatedSlot)
+	UDMUISlot* CastedSlot = Cast<UDMUISlot>(InObject);
+	if (CastedSlot)
 	{
-		SlideElement = Cast<UDMUISlideElement>(InCreatedSlot);
+		SlideElement = Cast<UDMUISlideElement>(CastedSlot);
 		if (SlideElement)
 		{
 			strAsyncKey.Empty();

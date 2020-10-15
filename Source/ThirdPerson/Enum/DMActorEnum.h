@@ -9,3 +9,10 @@ enum class EDMInput : uint8
 	Key_3,
 	Key_4,
 };
+
+enum class EDMActorComponentType : uint8
+{
+	None,
+
+	InteractionBase,
+};

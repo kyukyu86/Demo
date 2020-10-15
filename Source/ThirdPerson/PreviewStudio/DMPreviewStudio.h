@@ -51,8 +51,14 @@ protected:
 
 	AActor*		CustomActor			= nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	int32		LightChannel = 1;
+
 public:
 	ADMPreviewStudio();
+
+private:
+	void UpdateLightChannel(class UMeshComponent* IN InMeshComp);
 
 protected:
 	virtual void BeginPlay() override;
@@ -109,4 +115,6 @@ public:
 
 	AActor* GetDefaultActor();
 	AActor* GetCustomActor();
+
+	void AddActorInShowList(AActor* IN InActor);
 };

@@ -43,6 +43,7 @@ void FDMAsyncLoadTaskParam::LoadComplete()
 		AActor* SpawnedActor = World->SpawnActor((UClass*)LoadedObject, nullptr, FActorSpawnParameters());
 		if (SpawnedActor == nullptr)
 		{
+			ensureMsgf(false, TEXT("SpawnedActor is Invalid"));
 			return;
 		}
 
@@ -61,6 +62,7 @@ void FDMAsyncLoadTaskParam::LoadComplete()
 		UUserWidget* CreatedWidget = CreateWidget<UUserWidget>(World, (UClass*)LoadedObject);
 		if (CreatedWidget == nullptr)
 		{
+			ensureMsgf(false, TEXT("CreatedWidget is Invalid"));
 			return;
 		}
 

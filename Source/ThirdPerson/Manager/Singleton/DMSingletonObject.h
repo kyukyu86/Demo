@@ -20,6 +20,7 @@ public:
 	void Shutdown();
 	void DestroyInstance();
 
+	virtual bool OnTick(float InDeltaTime) { return true; }
 	virtual void OnDestroyInstance() {}
 };
 

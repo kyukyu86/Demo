@@ -14,8 +14,23 @@
 
 struct FDMOpenWidgetInfo
 {
-	FDMOpenWidgetInfo(EDMPanelKind IN InPanelKind, FTransform IN InTransform = FTransform::Identity, EDMWidgetComponentFlag IN InAdditionalFlags = EDMWidgetComponentFlag::None);
-	FDMOpenWidgetInfo(FString IN InWidgetPath, FTransform IN InStandardTransform = FTransform::Identity, FTransform IN InAddTransform = FTransform::Identity, bool IN InIs3DWidget = false, EDMWidgetComponentFlag IN InAdditionalFlags = EDMWidgetComponentFlag::None);
+	FDMOpenWidgetInfo(
+		EDMPanelKind IN InPanelKind
+		, FVector IN InStdLocation = FVector::ZeroVector
+		, FRotator IN InStdRotator = FRotator::ZeroRotator
+		, FVector IN InStdScale = FVector::OneVector
+		, EDMWidgetComponentFlag IN InAddFlags = EDMWidgetComponentFlag::None
+		, UObject* IN InOwnerObject = nullptr);
+
+	FDMOpenWidgetInfo(
+		FString IN InWidgetPath
+		, FTransform IN InStdTransform = FTransform::Identity
+		, FVector IN InAddLocation = FVector::ZeroVector
+		, FRotator IN InAddRotator = FRotator::ZeroRotator
+		, FVector IN InAddScale = FVector::OneVector
+		, bool IN InIs3DWidget = false
+		, EDMWidgetComponentFlag IN InAddFlags = EDMWidgetComponentFlag::None
+		, UObject* IN InOwnerObject = nullptr);;
 
 public:
 	// for Widget by Path
@@ -30,6 +45,8 @@ public:
 	EDMWidgetComponentFlag WidgetComponentFlags = EDMWidgetComponentFlag::None;
 
 	FDMCompleteAsyncLoad CompleteDelegate;
+
+	UObject* OwnerObject = nullptr;
 };
 
 struct FDMWidgetData
@@ -37,6 +54,8 @@ struct FDMWidgetData
 	EDMPanelKind PanelKind = EDMPanelKind::None;
 	UUserWidget* Widget = nullptr;
 	UDMWidgetComponentBase* WidgetComponent = nullptr;
+
+	UObject* OwnerObject = nullptr;
 };
 
 
@@ -65,10 +84,16 @@ public:
 
 	void ClosePanel(const EDMPanelKind IN InKind);
 	void CloseWidget(UUserWidget* IN InUserWidget);
+	void CloseWidget(UObject* IN InObject);
 
 	bool IsOpenedPanel(const EDMPanelKind IN InKind);
+	bool IsOpenedPanel(UObject* IN InObject);
 	bool IsAsyncLoadingPanel(const EDMPanelKind IN InKind);
 	bool IsAsyncLoadingWidget(const FString& IN InWidgetPath);
+	bool IsAsyncLoadingWidget(UObject* IN InObject);
+
+	template<class T>
+	T* FindPanel(const EDMPanelKind IN InKind);
 
 	// Sync
 	UUserWidget* CreateUISync(FString IN InPath);
@@ -89,6 +114,22 @@ public:
 
 };
 
+
+template<class T>
+T* DMUIManager::FindPanel(const EDMPanelKind IN InKind)
+{
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
+	for (; Node != nullptr; Node = Node->GetNextNode())
+	{
+		FDMWidgetData& WidgetData = Node->GetValue();
+		if (WidgetData.PanelKind == InKind)
+		{
+			return Cast<T>(WidgetData.Widget);
+		}
+	}
+
+	return nullptr;
+}
 
 template<class T>
 T* DMUIManager::CreateUISync_Casted(FString IN InPath)

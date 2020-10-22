@@ -2,13 +2,12 @@
 
 
 #include "DMIOBase.h"
-#include "../FunctionComponent/DMInteractionComponent.h"
 
 
 ADMIOBase::ADMIOBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PrimaryActorTick.bStartWithTickEnabled = false;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	// Create Root Component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
@@ -16,8 +15,12 @@ ADMIOBase::ADMIOBase(const FObjectInitializer& ObjectInitializer)
 		return;
 
 	// Create Interaction Component
-	InteractionComponent = CreateDefaultSubobject<UDMInteractionComponent>(TEXT("InteractionComponent"));
-	InteractionComponent->Initialize(this);
+// 	InteractionComponent = CreateDefaultSubobject<UDMInteractionComponent>(TEXT("InteractionComponent"));
+// 	InteractionComponent->Initialize(this);
+
+	// Create Target Component
+// 	TargetComponent = CreateDefaultSubobject<UDMTargetComponent>(TEXT("TargetComponent"));
+// 	TargetComponent->Initialize(this);
 }
 
 void ADMIOBase::BeginPlay()
@@ -25,11 +28,29 @@ void ADMIOBase::BeginPlay()
 	Super::BeginPlay();
 	
 	BuildCustomComponents();
+
+	TArray<UObject*> InteractionComponents;
+	GetDefaultSubobjects(InteractionComponents);
+	for (auto Object : InteractionComponents)
+	{
+		UDMInteractionComponent* CastedObject = Cast<UDMInteractionComponent>(Object);
+		if (CastedObject)
+			CastedObject->Initialize(this);
+
+		InteractionComponentList.Add(CastedObject);
+	}
 }
 
 void ADMIOBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	RemoveComponentAll();
+
+// 	if (InteractionComponent)
+// 	{
+// 		InteractionComponent->RemoveFromRoot();
+// 		this->RemoveOwnedComponent(InteractionComponent);
+// 		InteractionComponent->DestroyComponent();
+// 	}
 
 	Super::EndPlay(EndPlayReason);
 }

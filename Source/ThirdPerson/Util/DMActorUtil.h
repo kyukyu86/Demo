@@ -6,6 +6,7 @@
 #include "Templates/SubclassOf.h"
 #include "TimerManager.h"
 #include "Engine/EngineTypes.h"
+#include <Components/PrimitiveComponent.h>
 
 
 #define USE_GENERATEDCLASS 1
@@ -35,8 +36,17 @@ public:
 
 	static FTimerHandle SetTimer(FTimerDelegate const& InDelegate, float InRate, bool InbLoop);
 	static void ClearTimer(FTimerHandle& IN InTimerHandle);
+	static bool IsTimerActive(FTimerHandle InHandle);
+	static float GetTimerRemaining(FTimerHandle InHandle);
 
-	void SetDOF(const float IN InValue);
+	static void SetDOF(const float IN InValue);
+	static void SetActorTickEnable(class AActor* InActor, const bool bInEnabled);
+	static void SetComponentTickEnable(class UActorComponent* InComponent, const bool bInEnabled);
+
+	static bool IsInnerActor(AActor* IN InStandardActor, AActor* IN InOtherActor, const float IN InDistance);
+	static bool IsInnerComponent(AActor* IN InStandardActor, UPrimitiveComponent* IN InComponent, const float IN InDistance);
+
+
 };
 
 

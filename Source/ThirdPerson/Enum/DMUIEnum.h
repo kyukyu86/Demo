@@ -10,6 +10,7 @@ enum class EDMPanelKind : uint8
 {
 	None,
 
+	Debug,
 	Main,
 	Menu,
 	Inventory,

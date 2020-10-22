@@ -19,3 +19,8 @@ void UDMUIPanel_Main::NativeDestruct()
 
 	Super::NativeDestruct();
 }
+
+void UDMUIPanel_Main::UpdatePreview()
+{
+
+}

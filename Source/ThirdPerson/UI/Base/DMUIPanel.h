@@ -14,4 +14,7 @@ class THIRDPERSON_API UDMUIPanel : public UDMUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	void ShowOnAnimation();
+	void ShowOffAnimation();
 };

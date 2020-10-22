@@ -5,17 +5,18 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "../../Interface/DMActorComponentInterface.h"
-#include "../FunctionComponent/DMInteractionComponent.h"
 #include "DMIOBase.generated.h"
+
+
+class UDMInteractionComponent;
 
 UCLASS()
 class THIRDPERSON_API ADMIOBase : public AActor, public IDMActorComponentInterface
 {
 	GENERATED_UCLASS_BODY()
 	
-private:	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		UDMInteractionComponent* InteractionComponent;
+protected:
+	TArray<UDMInteractionComponent*> InteractionComponentList;
 
 protected:
 	virtual void BeginPlay() override;
@@ -24,5 +25,6 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+	virtual class UMeshComponent* GetMeshComponent() { return nullptr; }
 	USceneComponent* GetRootComponent() { return RootComponent; }
 };

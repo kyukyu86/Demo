@@ -13,33 +13,54 @@
 //	WidgetInfo
 //====================================================================================
 
-FDMOpenWidgetInfo::FDMOpenWidgetInfo(EDMPanelKind IN InPanelKind, FTransform IN InTransform /*= FTransform::Identity*/, EDMWidgetComponentFlag IN InAdditionalFlags /*= EDMWidgetComponentFlag::None*/)
+FDMOpenWidgetInfo::FDMOpenWidgetInfo(EDMPanelKind IN InPanelKind, FVector IN InStdLocation /*= FVector::ZeroVector*/, FRotator IN InStdRotator /*= FRotator::ZeroRotator*/, FVector IN InStdScale /*= FVector::ZeroVector*/, EDMWidgetComponentFlag IN InAddFlags /*= EDMWidgetComponentFlag::None*/, UObject* IN InOwnerObject /*= nullptr*/)
 {
-	if (DMUIManager::Get())
+	if (DMUIManager::Get() == false)
+		return;
+
+	const FDMWidgetTable* FoundWidgetData = DMUIManager::Get()->GetWidgetCreationTable(InPanelKind);
+	if (FoundWidgetData == nullptr)
+		return;
+
+	PanelKind = InPanelKind;
+	bIs3DWidget = FoundWidgetData->bIs3DWidget;
+	WidgetComponentFlags |= (EDMWidgetComponentFlag)FoundWidgetData->Flags;
+	WidgetComponentFlags |= InAddFlags;
+	OwnerObject = InOwnerObject;
+
+	if (bIs3DWidget)
 	{
-		const FDMWidgetTable* FoundWidgetData = DMUIManager::Get()->GetWidgetCreationTable(InPanelKind);
-		if (FoundWidgetData != nullptr)
-		{
-			PanelKind = InPanelKind;
-			bIs3DWidget = FoundWidgetData->bIs3DWidget;
-			WidgetComponentFlags |= (EDMWidgetComponentFlag)FoundWidgetData->Flags;
-			WidgetComponentFlags |= InAdditionalFlags;
-			Transform.SetLocation(InTransform.GetLocation() + FoundWidgetData->OffsetTransform.GetLocation());
-			Transform.SetRotation(InTransform.GetRotation() + FoundWidgetData->OffsetTransform.GetRotation());
-			Transform.SetScale3D(InTransform.GetScale3D() * FoundWidgetData->OffsetTransform.GetScale3D());
-		}
+		Transform.SetLocation(InStdLocation + FoundWidgetData->AddLocation);
+		Transform.SetRotation((InStdRotator + FoundWidgetData->AddRotator).Quaternion());
+		Transform.SetScale3D(InStdScale * FoundWidgetData->AddScale);
+	}
+	else
+	{
+		// 2D일때는 데이터에 직접 넣은 값만으로
+		Transform.SetLocation(FoundWidgetData->AddLocation);
+		Transform.SetScale3D(FoundWidgetData->AddScale);
 	}
 }
 
-FDMOpenWidgetInfo::FDMOpenWidgetInfo(FString IN InWidgetPath, FTransform IN InStandardTransform /*= FTransform::Identity*/, FTransform IN InAddTransform /*= FTransform::Identity*/, bool IN InIs3DWidget /*= false*/, EDMWidgetComponentFlag IN InAdditionalFlags /*= EDMWidgetComponentFlag::None*/)
+FDMOpenWidgetInfo::FDMOpenWidgetInfo(FString IN InWidgetPath, FTransform IN InStdTransform /*= FTransform::Identity */, FVector IN InAddLocation /*= FVector::ZeroVector */, FRotator IN InAddRotator /*= FRotator::ZeroRotator */, FVector IN InAddScale /*= FVector::ZeroVector */, bool IN InIs3DWidget /*= false */, EDMWidgetComponentFlag IN InAddFlags /*= EDMWidgetComponentFlag::None*/, UObject* IN InOwnerObject /*= nullptr*/)
 {
 	WidgetPath = InWidgetPath;
 	bIs3DWidget = InIs3DWidget;
-	WidgetComponentFlags = InAdditionalFlags;
+	WidgetComponentFlags = InAddFlags;
+	OwnerObject = InOwnerObject;
 
-	Transform.SetLocation(InStandardTransform.GetLocation() + InAddTransform.GetLocation());
-	Transform.SetRotation(InStandardTransform.GetRotation() + InAddTransform.GetRotation());
-	Transform.SetScale3D(InStandardTransform.GetScale3D() * InAddTransform.GetScale3D());
+	if (InIs3DWidget)
+	{
+		Transform.SetLocation(InStdTransform.GetLocation() + InAddLocation);
+		Transform.SetRotation((InStdTransform.GetRotation().Rotator() + InAddRotator).Quaternion());
+		Transform.SetScale3D(InStdTransform.GetScale3D() * InAddScale);
+	}
+	else
+	{
+		// 2D일때는 직접 넣은 값만으로
+		Transform.SetLocation(InAddLocation);
+		Transform.SetScale3D(InAddScale);
+	}
 }
 
 //====================================================================================
@@ -69,7 +90,7 @@ void DMUIManager::OnShutdown()
 
 void DMUIManager::CloseWidgetAll()
 {
-	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetTail();
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
 	for (; Node != nullptr; Node = Node->GetNextNode())
 	{
 		FDMWidgetData& WidgetData = Node->GetValue();
@@ -91,24 +112,33 @@ void DMUIManager::CloseWidgetAll()
 
 void DMUIManager::LoadWidgetTable()
 {
-	FDMCompleteAsyncLoad NewDelegate = FDMCompleteAsyncLoad::CreateLambda([=](UObject* IN InTable, FString IN InKey)
+// 	FDMCompleteAsyncLoad NewDelegate = FDMCompleteAsyncLoad::CreateLambda([=](UObject* IN InTable, FString IN InKey)
+// 	{
+// 		if (InTable->IsValidLowLevel())
+// 		{
+// 			TAssetPtr<UDataTable> NewTable(FSoftObjectPath(DEF_WIDGET_TABLE_PATH));
+// 			if (NewTable.IsValid() == false)
+// 			{
+// 				checkf(false, TEXT("Invalid Table Path : %s"), DEF_WIDGET_TABLE_PATH);
+// 			}
+// 			WidgetTable = NewTable;
+// 			WidgetTable.Get()->AddToRoot();
+// 		}
+// 		strAsyncKey_WidgetTable.Empty();
+// 	});
+// 	strAsyncKey_WidgetTable = DMAsyncLoadManager::Get()->AsyncLoadAsset(DEF_WIDGET_TABLE_PATH, NewDelegate);
+// 	if (strAsyncKey_WidgetTable == ASYNCLOADMANAGER_INVALID)
+// 	{
+// 		checkf(false, TEXT("Invalid Table Path : %s"), DEF_WIDGET_TABLE_PATH);
+// 	}
+
+	FStringAssetReference rAssetRef = FStringAssetReference(DEF_WIDGET_TABLE_PATH);
+	rAssetRef.TryLoad();
+	UObject* pObject = rAssetRef.ResolveObject();
+	if (pObject)
 	{
-		if (InTable->IsValidLowLevel())
-		{
-			TAssetPtr<UDataTable> NewTable(FSoftObjectPath(DEF_WIDGET_TABLE_PATH));
-			if (NewTable.IsValid() == false)
-			{
-				checkf(false, TEXT("Invalid Table Path : %s"), DEF_WIDGET_TABLE_PATH);
-			}
-			WidgetTable = NewTable;
-			WidgetTable.Get()->AddToRoot();
-		}
-		strAsyncKey_WidgetTable.Empty();
-	});
-	strAsyncKey_WidgetTable = DMAsyncLoadManager::Get()->AsyncLoadAsset(DEF_WIDGET_TABLE_PATH, NewDelegate);
-	if (strAsyncKey_WidgetTable == ASYNCLOADMANAGER_INVALID)
-	{
-		checkf(false, TEXT("Invalid Table Path : %s"), DEF_WIDGET_TABLE_PATH);
+		WidgetTable = Cast<UDataTable>(pObject);
+		WidgetTable.Get()->AddToRoot();
 	}
 }
 
@@ -116,6 +146,12 @@ FString DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 {
 	FString strWidgetPath = "";
 	
+	if (IsAsyncLoadingWidget(InWidgetInfo.OwnerObject))
+		return "";
+
+	if (IsOpenedPanel(InWidgetInfo.OwnerObject))
+		return "";
+
 	if (InWidgetInfo.PanelKind == EDMPanelKind::None)
 	{
 		if (IsAsyncLoadingWidget(InWidgetInfo.WidgetPath))
@@ -163,12 +199,17 @@ FString DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 				return;
 
 			CastedPanel->AddToViewport();
+			FVector2D ViewportPosition;
+			ViewportPosition.X = FoundInfo->Transform.GetLocation().X;
+			ViewportPosition.Y = FoundInfo->Transform.GetLocation().Y;
+			CastedPanel->SetPositionInViewport(ViewportPosition);
 		}
 
 		FDMWidgetData NewWidgetData;
 		NewWidgetData.PanelKind = FoundInfo->PanelKind;
 		NewWidgetData.Widget = UserWidget;
 		NewWidgetData.WidgetComponent = CreatedWidgetComponent;
+		NewWidgetData.OwnerObject = FoundInfo->OwnerObject;
 		WidgetDataList.AddTail(NewWidgetData);
 
 		// Complete Delegate
@@ -202,7 +243,7 @@ void DMUIManager::ClosePanel(const EDMPanelKind IN InPanelKind)
 	}
 
 	// Check Panel List
-	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetTail();
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
 	for (; Node != nullptr; Node = Node->GetNextNode())
 	{
 		FDMWidgetData& WidgetData = Node->GetValue();
@@ -229,7 +270,10 @@ void DMUIManager::ClosePanel(const EDMPanelKind IN InPanelKind)
 
 void DMUIManager::CloseWidget(UUserWidget* IN InUserWidget)
 {	
-	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetTail();
+	if (InUserWidget == nullptr)
+		return;
+
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
 	for (; Node != nullptr; Node = Node->GetNextNode())
 	{
 		FDMWidgetData& WidgetData = Node->GetValue();
@@ -254,14 +298,60 @@ void DMUIManager::CloseWidget(UUserWidget* IN InUserWidget)
 	}
 }
 
+void DMUIManager::CloseWidget(UObject* IN InObject)
+{
+	if (InObject == nullptr)
+		return;
+
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
+	for (; Node != nullptr; Node = Node->GetNextNode())
+	{
+		FDMWidgetData& WidgetData = Node->GetValue();
+		if (WidgetData.OwnerObject != InObject)
+			continue;
+
+		if (WidgetData.WidgetComponent)
+		{
+			WidgetData.WidgetComponent->SetActive(false);
+			WidgetData.WidgetComponent->RemoveFromRoot();
+			WidgetData.WidgetComponent->UnregisterComponent();
+			WidgetData.WidgetComponent->DestroyComponent();
+		}
+		else
+		{
+			WidgetData.Widget->RemoveFromRoot();
+			WidgetData.Widget->RemoveFromViewport();
+		}
+
+		WidgetDataList.RemoveNode(Node);
+		return;
+	}
+}
+
 bool DMUIManager::IsOpenedPanel(const EDMPanelKind IN InKind)
 {
-	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetTail();
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
 	for (; Node != nullptr; Node = Node->GetNextNode())
 	{
 		FDMWidgetData& WidgetData = Node->GetValue();
 		if (WidgetData.PanelKind == InKind)
-			return true;;
+			return true;
+	}
+
+	return false;
+}
+
+bool DMUIManager::IsOpenedPanel(UObject* IN InObject)
+{
+	if (InObject == nullptr)
+		return false;
+
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
+	for (; Node != nullptr; Node = Node->GetNextNode())
+	{
+		FDMWidgetData& WidgetData = Node->GetValue();
+		if (WidgetData.OwnerObject == InObject)
+			return true;
 	}
 
 	return false;
@@ -282,6 +372,19 @@ bool DMUIManager::IsAsyncLoadingWidget(const FString& IN InWidgetPath)
 	for (auto Data : AsyncList)
 	{
 		if (Data.Value.WidgetPath == InWidgetPath)
+			return true;
+	}
+	return false;
+}
+
+bool DMUIManager::IsAsyncLoadingWidget(UObject* IN InObject)
+{
+	if (InObject == nullptr)
+		return false;
+
+	for (auto Data : AsyncList)
+	{
+		if (Data.Value.OwnerObject == InObject)
 			return true;
 	}
 	return false;

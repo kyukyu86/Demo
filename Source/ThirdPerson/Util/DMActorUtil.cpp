@@ -59,6 +59,30 @@ void DMActorUtil::ClearTimer(FTimerHandle& IN InTimerHandle)
 	pWorld->GetTimerManager().ClearTimer(InTimerHandle);
 }
 
+bool DMActorUtil::IsTimerActive(FTimerHandle InHandle)
+{
+	if (UDMGameInstance::GetGameInstance() == nullptr)
+		return false;
+
+	UWorld* pWorld = UDMGameInstance::GetGameInstance()->GetWorld();
+	if (nullptr == pWorld)
+		return false;
+
+	return pWorld->GetTimerManager().IsTimerActive(InHandle);
+}
+
+float DMActorUtil::GetTimerRemaining(FTimerHandle InHandle)
+{
+	if (UDMGameInstance::GetGameInstance() == nullptr)
+		return false;
+
+	UWorld* pWorld = UDMGameInstance::GetGameInstance()->GetWorld();
+	if (nullptr == pWorld)
+		return false;
+
+	return pWorld->GetTimerManager().GetTimerRemaining(InHandle);
+}
+
 void DMActorUtil::SetDOF(const float IN InValue)
 {
 	UWorld* World = UDMGameInstance::GetGameInstance()->GetWorld();
@@ -82,4 +106,93 @@ void DMActorUtil::SetDOF(const float IN InValue)
 			PostProcessSettings->DepthOfFieldFocalDistance = InValue;
 		}
 	}
+}
+
+void DMActorUtil::SetActorTickEnable(class AActor* InActor, const bool bInEnabled)
+{
+	if (InActor == nullptr)
+	{
+		return;
+	}
+
+	if (bInEnabled)
+	{
+		if (InActor->PrimaryActorTick.IsTickFunctionRegistered() == false)
+		{
+			InActor->PrimaryActorTick.RegisterTickFunction(InActor->GetWorld()->GetCurrentLevel());
+			InActor->PrimaryActorTick.Target = InActor;
+		}
+
+		InActor->PrimaryActorTick.bCanEverTick = true;
+		InActor->SetActorTickEnabled(true);
+	}
+	else
+	{
+		InActor->SetActorTickEnabled(false);
+		InActor->PrimaryActorTick.bCanEverTick = false;
+
+		if (InActor->PrimaryActorTick.IsTickFunctionRegistered())
+		{
+			InActor->PrimaryActorTick.UnRegisterTickFunction();
+		}
+	}
+}
+
+void DMActorUtil::SetComponentTickEnable(class UActorComponent* InComponent, const bool bInEnabled)
+{
+	if (InComponent == nullptr)
+	{
+		return;
+	}
+
+	if (bInEnabled)
+	{
+		if (InComponent->PrimaryComponentTick.IsTickFunctionRegistered() == false)
+		{
+			InComponent->PrimaryComponentTick.RegisterTickFunction(InComponent->GetWorld()->GetCurrentLevel());
+			InComponent->PrimaryComponentTick.Target = InComponent;
+		}
+
+		InComponent->PrimaryComponentTick.bCanEverTick = true;
+		InComponent->PrimaryComponentTick.SetTickFunctionEnable(true);
+	}
+	else
+	{
+		InComponent->PrimaryComponentTick.bCanEverTick = true;
+		InComponent->PrimaryComponentTick.SetTickFunctionEnable(false);
+		InComponent->PrimaryComponentTick.bCanEverTick = false;
+
+		if (InComponent->PrimaryComponentTick.IsTickFunctionRegistered())
+		{
+			InComponent->PrimaryComponentTick.UnRegisterTickFunction();
+		}
+	}
+}
+
+bool DMActorUtil::IsInnerActor(AActor* IN InStandardActor, AActor* IN InOtherActor, const float IN InDistance)
+{
+	if (InStandardActor == nullptr || InOtherActor == nullptr)
+		return false;
+
+	FVector Actor1Location = InStandardActor->GetActorLocation();
+	FVector Actor2Location = InOtherActor->GetActorLocation();
+	float fActorDistance = FVector::Distance(Actor1Location, Actor2Location);
+	if (fActorDistance < InDistance)
+		return true;
+
+	return false;
+}
+
+bool DMActorUtil::IsInnerComponent(AActor* IN InStandardActor, UPrimitiveComponent* IN InComponent, const float IN InDistance)
+{
+	if (InStandardActor == nullptr || InComponent == nullptr)
+		return false;
+
+	FVector Actor1Location = InStandardActor->GetActorLocation();
+	FVector Actor2Location = InComponent->GetComponentLocation();
+	float fActorDistance = FVector::Distance(Actor1Location, Actor2Location);
+	if (fActorDistance < InDistance)
+		return true;
+
+	return false;
 }

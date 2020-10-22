@@ -3,3 +3,12 @@
 
 #include "DMUIPanel.h"
 
+void UDMUIPanel::ShowOnAnimation()
+{
+
+}
+
+void UDMUIPanel::ShowOffAnimation()
+{
+
+}

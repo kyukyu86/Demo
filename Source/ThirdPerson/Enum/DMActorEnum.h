@@ -1,5 +1,6 @@
 #pragma once
 
+UENUM(BlueprintType)
 enum class EDMInput : uint8
 {
 	None,
@@ -14,5 +15,47 @@ enum class EDMActorComponentType : uint8
 {
 	None,
 
-	InteractionBase,
+	FSM,
+	Interaction,
 };
+
+UENUM(BlueprintType)
+enum class EDMIdleType : uint8
+{
+	None,
+
+	Stand,
+	Sit,
+	Fly,
+};
+
+UENUM(BlueprintType)
+enum class EDMFSMType : uint8
+{
+	None,
+
+	Idle,
+
+	AttackNormal,
+	
+	SkillNormal,
+
+	Hitted,
+};
+
+UENUM(BlueprintType)
+enum class EDMInteractionResult : uint8
+{
+	None,
+
+	DropItem,
+	OpenWidget,
+};
+
+UENUM(BlueprintType)
+enum class EDMInteractionResultAfter : uint8
+{
+	Remain,
+	Delete,
+};
+

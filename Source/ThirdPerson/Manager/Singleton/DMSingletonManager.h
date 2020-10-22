@@ -14,6 +14,8 @@ public:
 
 	static void ShutDown();
 
+	static bool Tick(float InDeltaTime);
+
 	static void LoadLevelStart();
 
 	static void LoadLevelComplete();
@@ -24,4 +26,5 @@ public:
 
 private:
 	static TDoubleLinkedList<class DMSingletonObject*> SingletonList;
+	static FDelegateHandle TickHandle;
 };

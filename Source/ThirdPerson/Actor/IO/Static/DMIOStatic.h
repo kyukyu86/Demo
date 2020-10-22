@@ -6,6 +6,8 @@
 #include "../DMIOBase.h"
 #include "DMIOStatic.generated.h"
 
+class UStaticMeshComponent;
+
 UCLASS()
 class THIRDPERSON_API ADMIOStatic : public ADMIOBase
 {
@@ -13,14 +15,15 @@ class THIRDPERSON_API ADMIOStatic : public ADMIOBase
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UStaticMeshComponent* StaticMeshComponent = nullptr;
+		UStaticMeshComponent* StaticMeshComponent = nullptr;	
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void BuildCustomComponents();
+	virtual void BuildCustomComponents() override;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+	virtual class UMeshComponent* GetMeshComponent() override { return StaticMeshComponent; }
 
 };

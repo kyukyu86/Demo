@@ -3,12 +3,16 @@
 
 #include "DMUIPanel_Menu.h"
 #include "../../Manager/DMUIManager.h"
+#include <Components/Button.h>
 
 void UDMUIPanel_Menu::NativeConstruct()
 {
 	Super::NativeConstruct();
-
+	
 	SetFocusableInputMode(true, this);
+
+	Button_Inventory->OnClicked.AddDynamic(this, &UDMUIPanel_Menu::OnClicked_Inventory);
+	Button_Debug->OnClicked.AddDynamic(this, &UDMUIPanel_Menu::OnClicked_Debug);
 }
 
 void UDMUIPanel_Menu::NativeDestruct()
@@ -30,4 +34,23 @@ FReply UDMUIPanel_Menu::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyE
 	}
 
 	return FReply::Unhandled();
+}
+
+//====================================================================================
+
+void UDMUIPanel_Menu::OnClicked_Inventory()
+{
+
+}
+
+void UDMUIPanel_Menu::OnClicked_Debug()
+{
+	if (DMUIManager::Get()->IsOpenedPanel(EDMPanelKind::Debug))
+	{
+		DMUIManager::Get()->ClosePanel(EDMPanelKind::Debug);
+	}
+	else
+	{
+		DMUIManager::Get()->OpenPanel(EDMPanelKind::Debug);
+	}
 }

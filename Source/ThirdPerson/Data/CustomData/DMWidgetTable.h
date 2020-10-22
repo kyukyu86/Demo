@@ -23,7 +23,13 @@ public:
 		bool bIs3DWidget = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		FTransform OffsetTransform = FTransform::Identity;
+		FVector AddLocation = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		FRotator AddRotator = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		FVector AddScale = FVector::OneVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true", Bitmask, BitmaskEnum = "EDMWidgetComponentFlag"))
 		int32 Flags = 0;

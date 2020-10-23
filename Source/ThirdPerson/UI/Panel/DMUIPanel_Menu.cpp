@@ -4,6 +4,10 @@
 #include "DMUIPanel_Menu.h"
 #include "../../Manager/DMUIManager.h"
 #include <Components/Button.h>
+#include "../../Manager/DMAsyncLoadManager.h"
+#include "../../Actor/WidgetActor/DMWidgetActorInventory.h"
+#include "../../Manager/DMCharacterManager.h"
+#include "../../Actor/Character/Player/DMCharacterMine.h"
 
 void UDMUIPanel_Menu::NativeConstruct()
 {
@@ -40,7 +44,25 @@ FReply UDMUIPanel_Menu::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyE
 
 void UDMUIPanel_Menu::OnClicked_Inventory()
 {
+	if (strAsyncKey != "")
+		return;
 
+	auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
+	{
+		strAsyncKey = "";
+
+		ADMWidgetActorInventory* CastedWidgetActorInventory = Cast<ADMWidgetActorInventory>(InObject);
+		if (CastedWidgetActorInventory)
+		{
+			ADMCharacterMine* pMine = DMCharacterManager::Get()->GetMyCharacter();
+
+			CastedWidgetActorInventory->SetActorLocation(pMine->GetActorLocation());
+			CastedWidgetActorInventory->SetActorRotation(pMine->GetActorRotation());
+		}
+	});
+
+	FString MyCharPath = "/Game/Blueprints/Actor/WidgetActor/InventoryActor_BP.InventoryActor_BP_C";
+	strAsyncKey = DMAsyncLoadManager::Get()->AsyncSpawnActor(MyCharPath, AsyncCreateComplete);
 }
 
 void UDMUIPanel_Menu::OnClicked_Debug()

@@ -19,6 +19,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
 		UButton* Button_Debug;
 
+	FString strAsyncKey = "";
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;

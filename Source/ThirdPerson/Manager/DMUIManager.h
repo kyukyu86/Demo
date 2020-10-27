@@ -23,16 +23,25 @@ struct FDMOpenWidgetInfo
 		, UObject* IN InOwnerObject = nullptr);
 
 	FDMOpenWidgetInfo(
+		EDMPanelKind IN InPanelKind
+		, FTransform IN InStdTransform = FTransform::Identity
+		, EDMWidgetComponentFlag IN InAddFlags = EDMWidgetComponentFlag::None
+		, UObject* IN InOwnerObject = nullptr);
+
+	FDMOpenWidgetInfo(
 		FString IN InWidgetPath
 		, FTransform IN InStdTransform = FTransform::Identity
 		, FVector IN InAddLocation = FVector::ZeroVector
 		, FRotator IN InAddRotator = FRotator::ZeroRotator
 		, FVector IN InAddScale = FVector::OneVector
-		, bool IN InIs3DWidget = false
+		, EDMWidgetType IN InWidgetType = EDMWidgetType::None
 		, EDMWidgetComponentFlag IN InAddFlags = EDMWidgetComponentFlag::None
-		, UObject* IN InOwnerObject = nullptr);;
+		, UObject* IN InOwnerObject = nullptr);
 
 public:
+	EDMWidgetCreationType WidgetCreationType = EDMWidgetCreationType::None;
+	EDMWidgetType WidgetType = EDMWidgetType::None;
+
 	// for Widget by Path
 	FString WidgetPath = "";
 
@@ -40,7 +49,6 @@ public:
 	EDMPanelKind PanelKind = EDMPanelKind::None;
 
 	// for Widget Component
-	bool bIs3DWidget = false;
 	FTransform Transform = FTransform::Identity;
 	EDMWidgetComponentFlag WidgetComponentFlags = EDMWidgetComponentFlag::None;
 
@@ -51,9 +59,12 @@ public:
 
 struct FDMWidgetData
 {	
+	EDMWidgetType WidgetType = EDMWidgetType::None;
+
 	EDMPanelKind PanelKind = EDMPanelKind::None;
 	UUserWidget* Widget = nullptr;
 	UDMWidgetComponentBase* WidgetComponent = nullptr;
+	class ADMWidgetActorBase* WidgetActor = nullptr;
 
 	UObject* OwnerObject = nullptr;
 };
@@ -64,6 +75,8 @@ class THIRDPERSON_API DMUIManager : public DMSingleton<DMUIManager>
 private:
 	TMap<FString, FDMOpenWidgetInfo> AsyncList;
 	TDoubleLinkedList<FDMWidgetData> WidgetDataList;
+	TArray<EDMPanelKind> DisappearProgressList;
+
 
 	TAssetPtr<UDataTable> WidgetTable = nullptr;
 	FString strAsyncKey_WidgetTable = "";
@@ -74,6 +87,8 @@ private:
 	void CloseWidgetAll();
 
 	void LoadWidgetTable();
+
+	void AddDisappearProgressList(const EDMPanelKind IN InKind);
 
 public:
 	virtual void OnInit() override;
@@ -94,6 +109,9 @@ public:
 
 	template<class T>
 	T* FindPanel(const EDMPanelKind IN InKind);
+
+	void RemoveDisappearProgressList(const EDMPanelKind IN InKind);
+	bool IsDisappearProgress(const EDMPanelKind IN InKind);
 
 	// Sync
 	UUserWidget* CreateUISync(FString IN InPath);

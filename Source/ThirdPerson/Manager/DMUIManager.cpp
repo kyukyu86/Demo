@@ -5,6 +5,7 @@
 #include "DMPathManager.h"
 #include "../GameInstance/DMGameInstance.h"
 #include "../Data/CustomData/DMWidgetTable.h"
+#include "../Actor/WidgetActor/Base/DMWidgetActorBase.h"
 
 #define DEF_WIDGET_TABLE_PATH TEXT("/Game/Data/UI/WidgetTable.WidgetTable")
 
@@ -22,44 +23,72 @@ FDMOpenWidgetInfo::FDMOpenWidgetInfo(EDMPanelKind IN InPanelKind, FVector IN InS
 	if (FoundWidgetData == nullptr)
 		return;
 
+	WidgetCreationType = EDMWidgetCreationType::PanelKind;
+
+	WidgetType = FoundWidgetData->WidgetType;
 	PanelKind = InPanelKind;
-	bIs3DWidget = FoundWidgetData->bIs3DWidget;
 	WidgetComponentFlags |= (EDMWidgetComponentFlag)FoundWidgetData->Flags;
 	WidgetComponentFlags |= InAddFlags;
 	OwnerObject = InOwnerObject;
 
-	if (bIs3DWidget)
+	switch (WidgetType)
 	{
-		Transform.SetLocation(InStdLocation + FoundWidgetData->AddLocation);
-		Transform.SetRotation((InStdRotator + FoundWidgetData->AddRotator).Quaternion());
-		Transform.SetScale3D(InStdScale * FoundWidgetData->AddScale);
-	}
-	else
+	case EDMWidgetType::Widget2D:
 	{
 		// 2D일때는 데이터에 직접 넣은 값만으로
 		Transform.SetLocation(FoundWidgetData->AddLocation);
 		Transform.SetScale3D(FoundWidgetData->AddScale);
 	}
+	break;
+	case EDMWidgetType::Widget3D:
+	{
+		Transform.SetLocation(InStdLocation + FoundWidgetData->AddLocation);
+		Transform.SetRotation((InStdRotator + FoundWidgetData->AddRotator).Quaternion());
+		Transform.SetScale3D(InStdScale * FoundWidgetData->AddScale);
+	}
+	break;
+	case EDMWidgetType::WidgetActor:
+	{
+		WidgetPath = FoundWidgetData->WidgetActor->GetPathName();
+		Transform.SetLocation(InStdLocation + FoundWidgetData->AddLocation);
+		Transform.SetRotation((InStdRotator + FoundWidgetData->AddRotator).Quaternion());
+		Transform.SetScale3D(InStdScale * FoundWidgetData->AddScale);
+	}
+	break;
+	}
 }
 
-FDMOpenWidgetInfo::FDMOpenWidgetInfo(FString IN InWidgetPath, FTransform IN InStdTransform /*= FTransform::Identity */, FVector IN InAddLocation /*= FVector::ZeroVector */, FRotator IN InAddRotator /*= FRotator::ZeroRotator */, FVector IN InAddScale /*= FVector::ZeroVector */, bool IN InIs3DWidget /*= false */, EDMWidgetComponentFlag IN InAddFlags /*= EDMWidgetComponentFlag::None*/, UObject* IN InOwnerObject /*= nullptr*/)
+FDMOpenWidgetInfo::FDMOpenWidgetInfo(EDMPanelKind IN InPanelKind, FTransform IN InStdTransform /*= FTransform::Identity */, EDMWidgetComponentFlag IN InAddFlags /*= EDMWidgetComponentFlag::None */, UObject* IN InOwnerObject /*= nullptr*/)
+	: FDMOpenWidgetInfo(InPanelKind, InStdTransform.GetLocation(), InStdTransform.GetRotation().Rotator(), InStdTransform.GetScale3D(), InAddFlags, InOwnerObject)
 {
+
+}
+
+FDMOpenWidgetInfo::FDMOpenWidgetInfo(FString IN InWidgetPath, FTransform IN InStdTransform /*= FTransform::Identity */, FVector IN InAddLocation /*= FVector::ZeroVector */, FRotator IN InAddRotator /*= FRotator::ZeroRotator */, FVector IN InAddScale /*= FVector::ZeroVector */, EDMWidgetType IN InWidgetType /*= EDMWidgetType::None*/, EDMWidgetComponentFlag IN InAddFlags /*= EDMWidgetComponentFlag::None*/, UObject* IN InOwnerObject /*= nullptr*/)
+{
+	WidgetCreationType = EDMWidgetCreationType::WidgetPath;
+
 	WidgetPath = InWidgetPath;
-	bIs3DWidget = InIs3DWidget;
+	InWidgetType = InWidgetType;
 	WidgetComponentFlags = InAddFlags;
 	OwnerObject = InOwnerObject;
 
-	if (InIs3DWidget)
+	switch (InWidgetType)
+	{
+	case EDMWidgetType::Widget2D:
+	{
+		// 2D일때는 직접 넣은 값만으로
+		Transform.SetLocation(InAddLocation);
+		Transform.SetScale3D(InAddScale);
+	}
+	break;
+	case EDMWidgetType::Widget3D:
 	{
 		Transform.SetLocation(InStdTransform.GetLocation() + InAddLocation);
 		Transform.SetRotation((InStdTransform.GetRotation().Rotator() + InAddRotator).Quaternion());
 		Transform.SetScale3D(InStdTransform.GetScale3D() * InAddScale);
 	}
-	else
-	{
-		// 2D일때는 직접 넣은 값만으로
-		Transform.SetLocation(InAddLocation);
-		Transform.SetScale3D(InAddScale);
+	break;
 	}
 }
 
@@ -94,17 +123,37 @@ void DMUIManager::CloseWidgetAll()
 	for (; Node != nullptr; Node = Node->GetNextNode())
 	{
 		FDMWidgetData& WidgetData = Node->GetValue();
-		if (WidgetData.WidgetComponent)
+		switch (WidgetData.WidgetType)
 		{
-			WidgetData.WidgetComponent->SetActive(false);
-			WidgetData.WidgetComponent->RemoveFromRoot();
-			WidgetData.WidgetComponent->UnregisterComponent();
-			WidgetData.WidgetComponent->DestroyComponent();
+		case EDMWidgetType::Widget2D:
+		{
+			if (WidgetData.Widget)
+			{
+				WidgetData.Widget->RemoveFromRoot();
+				WidgetData.Widget->RemoveFromViewport();
+			}
 		}
-		else
+		break;
+		case EDMWidgetType::Widget3D:
 		{
-			WidgetData.Widget->RemoveFromRoot();
-			WidgetData.Widget->RemoveFromViewport();
+			if (WidgetData.WidgetComponent)
+			{
+				WidgetData.WidgetComponent->SetActive(false);
+				WidgetData.WidgetComponent->RemoveFromRoot();
+				WidgetData.WidgetComponent->UnregisterComponent();
+				WidgetData.WidgetComponent->DestroyComponent();
+			}			
+		}
+		break;
+		case EDMWidgetType::WidgetActor:
+		{
+			if (WidgetData.WidgetActor)
+			{
+				WidgetData.WidgetActor->RemoveFromRoot();
+				WidgetData.WidgetActor->Destroy();
+			}			
+		}
+		break;
 		}
 	}
 	WidgetDataList.Empty();
@@ -142,6 +191,11 @@ void DMUIManager::LoadWidgetTable()
 	}
 }
 
+void DMUIManager::AddDisappearProgressList(const EDMPanelKind IN InKind)
+{
+	DisappearProgressList.Add(InKind);
+}
+
 FString DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 {
 	FString strWidgetPath = "";
@@ -152,14 +206,9 @@ FString DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 	if (IsOpenedPanel(InWidgetInfo.OwnerObject))
 		return "";
 
-	if (InWidgetInfo.PanelKind == EDMPanelKind::None)
+	switch (InWidgetInfo.WidgetCreationType)
 	{
-		if (IsAsyncLoadingWidget(InWidgetInfo.WidgetPath))
-			return "";
-
-		strWidgetPath = InWidgetInfo.WidgetPath;
-	}
-	else
+	case EDMWidgetCreationType::PanelKind:
 	{
 		if (IsAsyncLoadingPanel(InWidgetInfo.PanelKind))
 			return "";
@@ -167,33 +216,53 @@ FString DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 		if (IsOpenedPanel(InWidgetInfo.PanelKind))
 			return "";
 
-		strWidgetPath = DMPathManager::Get()->GetUIPanelPath(InWidgetInfo.PanelKind);
+		switch (InWidgetInfo.WidgetType)
+		{
+		case EDMWidgetType::Widget2D:
+		case EDMWidgetType::Widget3D:
+		{
+			strWidgetPath = DMPathManager::Get()->GetUIPanelPath(InWidgetInfo.PanelKind);
+		}
+		break;
+
+		case EDMWidgetType::WidgetActor:
+		{
+			strWidgetPath = InWidgetInfo.WidgetPath;
+		}
+		break;
+		}
 	}
+	break;
+
+	case EDMWidgetCreationType::WidgetPath:
+	{
+		if (IsAsyncLoadingWidget(InWidgetInfo.WidgetPath))
+			return "";
+
+		strWidgetPath = InWidgetInfo.WidgetPath;
+	}
+	break;
+	}
+
 
 	auto AsyncComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
 	{
 		FDMOpenWidgetInfo* FoundInfo = AsyncList.Find(InKey);
 		if (FoundInfo == nullptr)
-			return;
+			return;		
 
-		UUserWidget* UserWidget = Cast<UUserWidget>(InObject);
-		if (UserWidget == nullptr)
-			return;
-
+		UUserWidget* UserWidget = nullptr;
 		UDMWidgetComponentBase* CreatedWidgetComponent = nullptr;
-		if (FoundInfo->bIs3DWidget)
-		{
-			if (CreateWidgetComponent<UDMWidgetComponentBase>(CreatedWidgetComponent, UserWidget))
-			{
-				CreatedWidgetComponent->SetWorldTransform(FoundInfo->Transform);
-				CreatedWidgetComponent->SetFlag(FoundInfo->WidgetComponentFlags);
+		ADMWidgetActorBase* WidgetActor = nullptr;
 
-				// + Desired Size 적용하기
-				CreatedWidgetComponent->SetDrawAtDesiredSize(true);
-			}
-		}
-		else
+		switch (FoundInfo->WidgetType)
 		{
+		case EDMWidgetType::Widget2D:
+		{
+			UserWidget = Cast<UUserWidget>(InObject);
+			if (UserWidget == nullptr)
+				return;
+
 			UDMUIPanel* CastedPanel = Cast<UDMUIPanel>(UserWidget);
 			if (CastedPanel == nullptr)
 				return;
@@ -204,12 +273,41 @@ FString DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 			ViewportPosition.Y = FoundInfo->Transform.GetLocation().Y;
 			CastedPanel->SetPositionInViewport(ViewportPosition);
 		}
+		break;
+		case EDMWidgetType::Widget3D:
+		{
+			UserWidget = Cast<UUserWidget>(InObject);
+			if (UserWidget == nullptr)
+				return;
+
+			if (CreateWidgetComponent<UDMWidgetComponentBase>(CreatedWidgetComponent, UserWidget))
+			{
+				CreatedWidgetComponent->SetWorldTransform(FoundInfo->Transform);
+				CreatedWidgetComponent->SetFlag(FoundInfo->WidgetComponentFlags);
+
+				// + Desired Size 적용하기
+				CreatedWidgetComponent->SetDrawAtDesiredSize(true);
+			}
+		}
+		break;
+		case EDMWidgetType::WidgetActor:
+		{
+			WidgetActor = Cast<ADMWidgetActorBase>(InObject);
+			if (WidgetActor == nullptr)
+				return;
+
+			WidgetActor->SetActorTransform(FoundInfo->Transform);
+		}
+		break;
+		}
 
 		FDMWidgetData NewWidgetData;
+		NewWidgetData.WidgetType = FoundInfo->WidgetType;
 		NewWidgetData.PanelKind = FoundInfo->PanelKind;
 		NewWidgetData.Widget = UserWidget;
 		NewWidgetData.WidgetComponent = CreatedWidgetComponent;
 		NewWidgetData.OwnerObject = FoundInfo->OwnerObject;
+		NewWidgetData.WidgetActor = WidgetActor;
 		WidgetDataList.AddTail(NewWidgetData);
 
 		// Complete Delegate
@@ -218,14 +316,30 @@ FString DMUIManager::OpenPanel(FDMOpenWidgetInfo IN InWidgetInfo)
 		AsyncList.Remove(InKey);
 	});
 
-	FString strAsyncKey = DMAsyncLoadManager::Get()->AsyncCreateWidget(strWidgetPath, AsyncComplete);
-	AsyncList.Add(strAsyncKey, InWidgetInfo);
+
+	FString strAsyncKey = "";
+	switch (InWidgetInfo.WidgetType)
+	{
+	case EDMWidgetType::Widget2D:
+	case EDMWidgetType::Widget3D:
+	{
+		strAsyncKey = DMAsyncLoadManager::Get()->AsyncCreateWidget(strWidgetPath, AsyncComplete);
+		AsyncList.Add(strAsyncKey, InWidgetInfo);
+	}
+	break;
+	case EDMWidgetType::WidgetActor:
+	{
+		strAsyncKey = DMAsyncLoadManager::Get()->AsyncSpawnActor(strWidgetPath, AsyncComplete);
+		AsyncList.Add(strAsyncKey, InWidgetInfo);
+	}
+	break;
+	}
 	return strAsyncKey;
 }
 
 FString DMUIManager::OpenPanel(const EDMPanelKind IN InKind)
 {	
-	FDMOpenWidgetInfo TempInfo(InKind);
+	FDMOpenWidgetInfo TempInfo(InKind, FTransform::Identity);
 	return OpenPanel(TempInfo);
 }
 
@@ -249,17 +363,40 @@ void DMUIManager::ClosePanel(const EDMPanelKind IN InPanelKind)
 		FDMWidgetData& WidgetData = Node->GetValue();
 		if (WidgetData.PanelKind == InPanelKind)
 		{
-			if (WidgetData.WidgetComponent)
+			switch (WidgetData.WidgetType)
 			{
-				WidgetData.WidgetComponent->SetActive(false);
-				WidgetData.WidgetComponent->RemoveFromRoot();
-				WidgetData.WidgetComponent->UnregisterComponent();
-				WidgetData.WidgetComponent->DestroyComponent();
+			case EDMWidgetType::Widget2D:
+			{
+				if (WidgetData.Widget)
+				{
+					WidgetData.Widget->RemoveFromRoot();
+					WidgetData.Widget->RemoveFromViewport();
+				}
 			}
-			else
+			break;
+			case EDMWidgetType::Widget3D:
 			{
-				WidgetData.Widget->RemoveFromRoot();
-				WidgetData.Widget->RemoveFromViewport();
+				if (WidgetData.WidgetComponent)
+				{
+					WidgetData.WidgetComponent->SetActive(false);
+					WidgetData.WidgetComponent->RemoveFromRoot();
+					WidgetData.WidgetComponent->UnregisterComponent();
+					WidgetData.WidgetComponent->DestroyComponent();
+				}				
+			}
+			break;
+			case EDMWidgetType::WidgetActor:
+			{
+				if (WidgetData.WidgetActor)
+				{
+					WidgetData.WidgetActor->OnDisappear();
+// 					WidgetData.WidgetActor->RemoveFromRoot();
+// 					WidgetData.WidgetActor->Destroy();
+
+					AddDisappearProgressList(WidgetData.PanelKind);
+				}				
+			}
+			break;
 			}
 
 			WidgetDataList.RemoveNode(Node);
@@ -385,6 +522,21 @@ bool DMUIManager::IsAsyncLoadingWidget(UObject* IN InObject)
 	for (auto Data : AsyncList)
 	{
 		if (Data.Value.OwnerObject == InObject)
+			return true;
+	}
+	return false;
+}
+
+void DMUIManager::RemoveDisappearProgressList(const EDMPanelKind IN InKind)
+{
+	DisappearProgressList.Remove(InKind);
+}
+
+bool DMUIManager::IsDisappearProgress(const EDMPanelKind IN InKind)
+{
+	for (auto DissappearElement : DisappearProgressList)
+	{
+		if (DissappearElement == InKind)
 			return true;
 	}
 	return false;

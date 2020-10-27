@@ -7,6 +7,7 @@
 #include <Blueprint/UserWidget.h>
 #include "../../Util/DMActorUtil.h"
 #include <Engine/AssetManager.h>
+#include <Blueprint/WidgetBlueprintLibrary.h>
 
 
 void UDMWidgetComponentBase::BeginPlay()
@@ -67,6 +68,18 @@ void UDMWidgetComponentBase::SetFlag(EDMWidgetComponentFlag& IN InFlags)
 	{
 		
 	}
+}
+
+void UDMWidgetComponentBase::FocusWidget()
+{
+	if (UDMGameInstance::GetGameInstance() == nullptr)
+		return;
+
+	APlayerController* PlayerController = UDMGameInstance::GetGameInstance()->GetFirstLocalPlayerController();
+	if (PlayerController == nullptr)
+		return;
+
+	UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(PlayerController, GetUserWidgetObject());
 }
 
 FVector UDMWidgetComponentBase::GetCameraLocation()

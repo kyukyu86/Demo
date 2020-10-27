@@ -44,25 +44,36 @@ FReply UDMUIPanel_Menu::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyE
 
 void UDMUIPanel_Menu::OnClicked_Inventory()
 {
-	if (strAsyncKey != "")
+	if (strAsyncKey.IsEmpty() == false)
 		return;
 
-	auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
+	if (DMUIManager::Get()->IsDisappearProgress(EDMPanelKind::Inventory))
+		return;
+
+
+	if (DMUIManager::Get()->IsAsyncLoadingPanel(EDMPanelKind::Inventory) || DMUIManager::Get()->IsOpenedPanel(EDMPanelKind::Inventory))
 	{
-		strAsyncKey = "";
-
-		ADMWidgetActorInventory* CastedWidgetActorInventory = Cast<ADMWidgetActorInventory>(InObject);
-		if (CastedWidgetActorInventory)
+		DMUIManager::Get()->ClosePanel(EDMPanelKind::Inventory);
+	}
+	else
+	{
+		auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([&](UObject* InObject, FString InKey)
 		{
-			ADMCharacterMine* pMine = DMCharacterManager::Get()->GetMyCharacter();
+			strAsyncKey.Empty();
 
-			CastedWidgetActorInventory->SetActorLocation(pMine->GetActorLocation());
-			CastedWidgetActorInventory->SetActorRotation(pMine->GetActorRotation());
-		}
-	});
-
-	FString MyCharPath = "/Game/Blueprints/Actor/WidgetActor/InventoryActor_BP.InventoryActor_BP_C";
-	strAsyncKey = DMAsyncLoadManager::Get()->AsyncSpawnActor(MyCharPath, AsyncCreateComplete);
+			ADMWidgetActorInventory* CastedWidgetActorInventory = Cast<ADMWidgetActorInventory>(InObject);
+			if (CastedWidgetActorInventory)
+			{
+//	 			ADMCharacterMine* pMine = DMCharacterManager::Get()->GetMyCharacter();
+//	 			CastedWidgetActorInventory->SetActorLocation(pMine->GetActorLocation());
+//	 			CastedWidgetActorInventory->SetActorRotation(pMine->GetActorRotation());
+			}
+		});
+		ADMCharacterMine* pMine = DMCharacterManager::Get()->GetMyCharacter();
+		FDMOpenWidgetInfo WidgetInfo(EDMPanelKind::Inventory, pMine->GetActorTransform());
+		WidgetInfo.CompleteDelegate = AsyncCreateComplete;
+		strAsyncKey = DMUIManager::Get()->OpenPanel(WidgetInfo);
+	}	
 }
 
 void UDMUIPanel_Menu::OnClicked_Debug()

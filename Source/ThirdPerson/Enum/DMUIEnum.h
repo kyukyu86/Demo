@@ -6,10 +6,17 @@
 DECLARE_DELEGATE_OneParam(FDMSlotUILoadCompletedDelegate, UDMUISlot*)
 
 UENUM(BlueprintType)
+enum class EDMWidgetCreationType : uint8
+{
+	None,
+	PanelKind,
+	WidgetPath,
+};
+
+UENUM(BlueprintType)
 enum class EDMPanelKind : uint8
 {
 	None,
-
 	Debug,
 	Main,
 	Menu,
@@ -20,8 +27,16 @@ UENUM(BlueprintType)
 enum class EDMSlotKind : uint8
 {
 	None,
-
 	Preview,
+};
+
+UENUM(BlueprintType)
+enum class EDMWidgetType : uint8
+{
+	None,
+	Widget2D,
+	Widget3D,
+	WidgetActor,
 };
 
 UENUM(Meta = (BitFlags, UseEnumValuesAsMaskValuesInEditor = "true"))

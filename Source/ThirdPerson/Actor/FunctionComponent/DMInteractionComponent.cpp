@@ -14,6 +14,7 @@
 #include "../Character/Player/DMCharacterMine.h"
 #include "../../Util/DMEnumUtil.h"
 #include "../IO/Skeletal/DMIOSkeletal.h"
+#include "../../Util/DMUIUtil.h"
 
 
 
@@ -214,7 +215,7 @@ void UDMInteractionComponent::OnTargeted()
 	{
 		if (WidgetClass != nullptr)
 		{
-			FDMOpenWidgetInfo OpenWidgetInfo(WidgetClass.Get()->GetPathName(), GetOwner()->GetActorTransform(), WidgetLocation, WidgetRotator, WidgetScale, true, EDMWidgetComponentFlag::Billboarrd, this);
+			FDMOpenWidgetInfo OpenWidgetInfo(WidgetClass.Get()->GetPathName(), GetOwner()->GetActorTransform(), WidgetLocation, WidgetRotator, WidgetScale, EDMWidgetType::Widget3D, EDMWidgetComponentFlag::Billboarrd, this);
 			DMUIManager::Get()->OpenPanel(OpenWidgetInfo);
 		}
 	}
@@ -266,20 +267,20 @@ bool UDMInteractionComponent::OnInputEventProcess(const EDMInput IN InInputType,
 			{
 				// Debug
 				FString strLog = FString::Printf(TEXT("Interaction Matched Input Event : exception is Done"));
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, strLog);
+				DMUIUtil::UEDebug(strLog);
 				continue;
 			}
 			else if (InputData.IsDoing())
 			{
 				// Debug
 				FString strLog = FString::Printf(TEXT("Interaction Matched Input Event : exception is Doing"));
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, strLog);
+				DMUIUtil::UEDebug(strLog);
 				continue;
 			}
 
 			// Debug
 			FString strLog = FString::Printf(TEXT("Interaction Matched Input Event !!"));
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, strLog);
+			DMUIUtil::UEDebug(strLog);
 
 
 			InputData.SetDoing(true);
@@ -315,7 +316,7 @@ void UDMInteractionComponent::OnResultProcess(FDMInteractionResultForm& IN InRes
 		{
 			// Debug
 			FString strLog = FString::Printf(TEXT("Start Result Delay : %d"), RefResult.ResultDelayTime);
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, strLog);
+			DMUIUtil::UEDebug(strLog);
 
 			RefResult.TimerHandle = DMActorUtil::SetTimer(FTimerDelegate::CreateUObject(this, &UDMInteractionComponent::OnResultProcess_Implementation, RefResult.ResultIndex, true), RefResult.ResultDelayTime, false);
 		}
@@ -336,7 +337,7 @@ void UDMInteractionComponent::OnResultProcess_Implementation(const int32 InResul
 	{
 		// Debug
 		FString strLog = FString::Printf(TEXT("Finished Result Delay : %s, %d"), *DMEnumUtil::EnumToString<EDMInteractionResult>("EDMInteractionResult", ResultData.ResultType), ResultData.ResultValue);
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, strLog);
+		DMUIUtil::UEDebug(strLog);
 	}
 
 	switch (ResultData.ResultType)
@@ -384,7 +385,7 @@ void UDMInteractionComponent::DetermineResultAfter()
 	{
 		// Debug
 		FString strLog = FString::Printf(TEXT("Interactionable Count Remaning : %d / %d"), InputEvent.ResultForm.InteractionCount, InputEvent.ResultForm.InteractionableCount);
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, strLog);
+		DMUIUtil::UEDebug(strLog);
 
 		return;
 	}
@@ -406,7 +407,7 @@ void UDMInteractionComponent::DetermineResultAfter()
 
 	// Debug
 	FString strLog = FString::Printf(TEXT("Result All Done"));
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, strLog);
+	DMUIUtil::UEDebug(strLog);
 }
 
 bool UDMInteractionComponent::SetCurrentInputResultDone(const int32 IN InResultIndex, const bool IN InSet)

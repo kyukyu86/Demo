@@ -20,7 +20,10 @@ public:
 		EDMPanelKind PanelKind = EDMPanelKind::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		bool bIs3DWidget = false;
+		EDMWidgetType WidgetType = EDMWidgetType::None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "WidgetType == EDMWidgetType::WidgetActor"))
+		TSubclassOf<class ADMWidgetActorBase> WidgetActor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		FVector AddLocation = FVector::ZeroVector;

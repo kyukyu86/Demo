@@ -12,6 +12,11 @@ DMUIUtil::~DMUIUtil()
 {
 }
 
+void DMUIUtil::UEDebug(FString IN InLog)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, InLog);
+}
+
 UObject* DMUIUtil::LoadImageObject(FString InImageFullPath)
 {
 	if (InImageFullPath.IsEmpty() == true)

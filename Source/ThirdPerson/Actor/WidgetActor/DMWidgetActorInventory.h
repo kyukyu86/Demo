@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Base/DMWidgetActorBase.h"
 #include "DMWidgetActorInventory.generated.h"
 
 
-enum class EDMWidgetActorInventory
+UENUM(BlueprintType)
+enum class EDMWidgetActorInventory : uint8
 {
 	Preview,
 	SlotList,
@@ -17,39 +18,37 @@ enum class EDMWidgetActorInventory
 	Bottom,
 };
 
+UENUM(BlueprintType)
+enum class EDMWidgetActorInventorySequence : uint8
+{
+	None,
+	Appear,
+	Disappear,
+	ShowOnDetail,
+	ShowOffDetail,
+};
+
 class UDMWidgetComponentBase;
+class UActorSequenceComponent;
+class UActorSequencePlayer;
 
 UCLASS()
-class THIRDPERSON_API ADMWidgetActorInventory : public AActor
+class THIRDPERSON_API ADMWidgetActorInventory : public ADMWidgetActorBase
 {
 	GENERATED_BODY()
 	
-private:
-	TMap<EDMWidgetActorInventory, UDMWidgetComponentBase*> WidgetComponentList;
-
 public:	
 	ADMWidgetActorInventory();
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnActorSequenceFinished_Implementation() override;
+	virtual FString GetActorSequenceTypeName(int32 InType) override;
+	FString GetCurrentPlayingActorSequenceTypeName();
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-	template<class T>
-	T* GetWidget(const EDMWidgetActorInventory IN InWidgetType);
+	virtual void OnAppear();
+	virtual void OnDisappear();
 
 };
-
-template<class T>
-T* ADMWidgetActorInventory::GetWidget(const EDMWidgetActorInventory IN InWidgetType)
-{
-	UDMWidgetComponentBase* FoundWidgetComponent = WidgetComponentList.FindRef(InWidgetType);
-	if (FoundWidgetComponent == nullptr)
-		return nullptr;
-
-	UUserWidget* pWidet = FoundWidgetComponent->GetUserWidgetObject();
-	if (pWidet == nullptr)
-		return nullptr;
-
-	return Cast<T>(pWidet);
-}

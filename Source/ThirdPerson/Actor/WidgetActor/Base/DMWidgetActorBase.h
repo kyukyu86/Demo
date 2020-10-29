@@ -63,7 +63,7 @@ protected:
 
 protected:
 	virtual void BeginPlay();
-	virtual void OnActorSequenceFinished_Implementation();
+	virtual void OnActorSequenceFinished_Implementation()	{}
 	UActorSequencePlayer* GetActorSequence(int32 InActorSequenceID);
 	virtual FString GetActorSequenceTypeName(int32 InActorSequenceID);
 
@@ -75,6 +75,7 @@ public:
 	virtual void Tick(float DeltaTime);
 	virtual void OnAppear();
 	virtual void OnDisappear();
+	virtual FReply OnKeyEvent(const int32 IN InComponentID, FKey IN InKeyEvent) { return FReply::Unhandled(); }
 
 	UFUNCTION(BlueprintCallable)
 		void OnActorSequenceFinished();

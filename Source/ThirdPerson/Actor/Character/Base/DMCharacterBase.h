@@ -33,8 +33,8 @@ protected:
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
-	void TurnAtRate(float Rate);
-	void LookUpAtRate(float Rate);
+	virtual void TurnAtRate(float Rate);
+	virtual void LookUpAtRate(float Rate);
 
 public:	
 	// Called every frame

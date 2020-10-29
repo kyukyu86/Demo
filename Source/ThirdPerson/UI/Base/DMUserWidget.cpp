@@ -90,6 +90,11 @@ void UDMUserWidget::CollectWidgetAnimation()
 	}
 }
 
+void UDMUserWidget::SetFocusThis()
+{
+	SetFocusableInputMode(true, this);
+}
+
 bool UDMUserWidget::PlayAnimationByName(const FName InAnimationName, float StartAtTime /*= 0.0f*/, int32 NumLoopsToPlay /*= 1*/, EUMGSequencePlayMode::Type PlayMode /*= EUMGSequencePlayMode::Forward*/, float PlaybackSpeed /*= 1.0f*/, bool bRestoreState /*= false*/)
 {
 	UWidgetAnimation* WidgetAnim = GetAnimationByName(InAnimationName);

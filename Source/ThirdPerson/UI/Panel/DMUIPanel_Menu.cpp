@@ -13,7 +13,7 @@ void UDMUIPanel_Menu::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	SetFocusableInputMode(true, this);
+	SetFocusableInputMode(true, Button_Inventory);
 
 	Button_Inventory->OnClicked.AddDynamic(this, &UDMUIPanel_Menu::OnClicked_Inventory);
 	Button_Debug->OnClicked.AddDynamic(this, &UDMUIPanel_Menu::OnClicked_Debug);

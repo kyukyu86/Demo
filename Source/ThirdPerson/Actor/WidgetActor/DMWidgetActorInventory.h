@@ -41,13 +41,14 @@ public:
 	ADMWidgetActorInventory();
 
 protected:
-	virtual void BeginPlay() override;
+	virtual void BeginPlay() override;	
 	virtual void OnActorSequenceFinished_Implementation() override;
 	virtual FString GetActorSequenceTypeName(int32 InType) override;
 	FString GetCurrentPlayingActorSequenceTypeName();
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+	virtual FReply OnKeyEvent(const int32 IN InComponentID, FKey IN InKeyEvent) override;
 	virtual void OnAppear();
 	virtual void OnDisappear();
 

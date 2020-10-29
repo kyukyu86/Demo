@@ -17,10 +17,16 @@ class THIRDPERSON_API UDMUIPanel_Main : public UDMUIPanel
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
 		class UTextBlock* TextBlock_Name;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
+		class UImage* Image_MouseCursor;
+
+private:
+	void UpdateMouseCursor();
 
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 public:
 	void UpdatePreview();

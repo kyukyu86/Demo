@@ -32,6 +32,8 @@ protected:
 	void CollectWidgetAnimation();
 
 public:
+	// Focus
+	virtual void SetFocusThis();
 	// Widget Animation
 	bool PlayAnimationByName(const FName InAnimationName, float StartAtTime = 0.0f, int32 NumLoopsToPlay = 1, EUMGSequencePlayMode::Type PlayMode = EUMGSequencePlayMode::Forward, float PlaybackSpeed = 1.0f, bool bRestoreState = false);
 	void StopAnimationByName(const FName InAnimationName);

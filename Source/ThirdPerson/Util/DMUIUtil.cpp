@@ -3,6 +3,9 @@
 
 #include "DMUIUtil.h"
 #include "Engine/Texture2D.h"
+#include "../GameInstance/DMGameInstance.h"
+#include <GameFramework/PlayerController.h>
+#include <Blueprint/WidgetLayoutLibrary.h>
 
 DMUIUtil::DMUIUtil()
 {
@@ -93,4 +96,78 @@ UMaterialInstanceDynamic* DMUIUtil::GetDynamicMaterial(UImage* const IN InImage)
 	ensureMsgf(false, TEXT("Failed to get 'Dynamic Mateiral Instance' of 'Image'"));
 
 	return nullptr;
+}
+
+bool DMUIUtil::GetMouseScreenPosition(FVector2D& OUT OutMouseScreenPosition)
+{
+	APlayerController* PlayerController = UDMGameInstance::GetGameInstance()->GetFirstLocalPlayerController();
+	if (PlayerController == nullptr)
+		return false;
+
+	FVector2D MousePosition;
+
+	//====================================================================================
+	// Get Mouse Position
+	//====================================================================================
+
+	// ¾ÈµÊ
+// 	PlayerController->GetMousePosition(OutMouseScreenPosition.X, OutMouseScreenPosition.Y);
+// 	GEngine->GameViewport->GetMousePosition(OutMouseScreenPosition);
+// 	OutMouseScreenPosition = UWidgetLayoutLibrary::GetMousePositionOnPlatform();
+
+	// µÊ
+	UWidgetLayoutLibrary::GetMousePositionScaledByDPI(PlayerController, OutMouseScreenPosition.X, OutMouseScreenPosition.Y);
+
+	//====================================================================================
+	// Get DPI Scale
+	//====================================================================================
+
+	// µÊ
+// 	float fDPIScale = GEngine->GameViewport->GetDPIScale();
+// 	fDPIScale = GEngine->GameViewport->GetDPIDerivedResolutionFraction();
+
+	// ¾ÈµÊ
+//  FVector2D viewportSize;
+//  GEngine->GameViewport->GetViewportSize(viewportSize);
+//  int32 X = FGenericPlatformMath::FloorToInt(viewportSize.X);
+//  int32 Y = FGenericPlatformMath::FloorToInt(viewportSize.Y);
+//	FVector2D DPIScale = GetDefault<UUserInterfaceSettings>(UUserInterfaceSettings::StaticClass())->GetDPIScaleBasedOnSize(FIntPoint(X, Y));
+
+	//====================================================================================
+	// ÃÖÁ¾
+	//====================================================================================
+
+//	OutMouseScreenPosition *= fDPIScale;
+
+	return true;
+}
+
+void DMUIUtil::GetMouseWorldTransform(FVector& OUT OutMouseWorldLocation, FVector& OUT OutMouseWorldDirection)
+{
+	APlayerController* PlayerController = UDMGameInstance::GetGameInstance()->GetFirstLocalPlayerController();
+	if (PlayerController == nullptr)
+		return;
+
+	// ¸ÂÀ½
+	PlayerController->DeprojectMousePositionToWorld(OutMouseWorldLocation, OutMouseWorldDirection);
+
+	// ¾È¸ÂÀ½
+//	FVector2D MousePosition;
+// 	UWidgetLayoutLibrary::GetMousePositionScaledByDPI(PlayerController, MousePosition.X, MousePosition.Y);
+//	UGameplayStatics::DeprojectScreenToWorld(PlayerController, MousePosition, OutMouseWorldLocation, OutMouseWorldDirection);
+
+	// ¾È¸ÂÀ½
+// 	ULocalPlayer* LocalPlayer = GEngine->GetLocalPlayerFromControllerId(GetWorld(), 0);
+// 	FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(
+// 		LocalPlayer->ViewportClient->Viewport,
+// 		GetWorld()->Scene,
+// 		LocalPlayer->ViewportClient->EngineShowFlags)
+// 		.SetRealtimeUpdate(true));
+// 	FVector OutViewLocation;
+// 	FRotator OutViewRotation;
+// 	FSceneView* SceneView = LocalPlayer->CalcSceneView(&ViewFamily, OutViewLocation, OutViewRotation, LocalPlayer->ViewportClient->Viewport);
+// 	if (SceneView != NULL)
+// 	{
+// 		SceneView->DeprojectFVector2D(MousePosition, /*out*/ OutMouseWorldLocation, /*out*/ OutMouseWorldDirection);
+// 	}
 }

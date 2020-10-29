@@ -22,4 +22,7 @@ public:
 	static bool SetResourceObject(UImage* const IN InImage, UObject* const IN InResourceObject, const bool IN bInMatchSize = false);
 
 	static UMaterialInstanceDynamic* GetDynamicMaterial(UImage* const IN InImage);
+
+	static bool GetMouseScreenPosition(FVector2D& OUT OutMouseScreenPosition);
+	static void GetMouseWorldTransform(FVector& OUT OutMouseWorldLocation, FVector& OUT OutMouseWorldDirection);
 };

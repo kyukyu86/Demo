@@ -25,7 +25,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UCameraComponent* FollowCamera;
 
+	class UWidgetInteractionComponent* WidgetInteractionComponent = nullptr;
 	UDMInteractionComponent* TargetedInteractionComponent = nullptr;
+	bool bIsMouseRButtonPressed = false;
 
 public:
 	ADMCharacterMine();
@@ -37,12 +39,20 @@ private:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void BuildCustomComponents() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void OnResetVR();
 	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
-	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
+	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);	
+	void TurnAtRateForMouse(float Rate);
+	void LookUpAtRateForMouse(float Rate);
+	virtual void TurnAtRate(float Rate);
+	virtual void LookUpAtRate(float Rate);
+	void MouseWheelRate(float Rate);
+
+	void UpdateWidgetInteractionByMouseCursorPosition();
 
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

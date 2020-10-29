@@ -15,6 +15,9 @@
 #include "../../../Manager/DMInputManager.h"
 #include "../../../Component/DMActorComponentInteraction.h"
 #include "../../FunctionComponent/DMInteractionComponent.h"
+#include <Components/WidgetInteractionComponent.h>
+#include "../../../GameInstance/DMGameInstance.h"
+#include "../../../Util/DMUIUtil.h"
 
 
 
@@ -35,7 +38,7 @@ ADMCharacterMine::ADMCharacterMine() : ADMCharacterPlayer()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	//
+	// Set Collision Profile
 	UCapsuleComponent* CastedRootComponent = Cast<UCapsuleComponent>(RootComponent);
 	if (CastedRootComponent)
 	{
@@ -55,16 +58,31 @@ void ADMCharacterMine::BeginPlay()
 
 void ADMCharacterMine::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-
+	if (WidgetInteractionComponent)
+	{
+		WidgetInteractionComponent->UnregisterComponent();
+		WidgetInteractionComponent->RemoveFromRoot();
+		WidgetInteractionComponent->DestroyComponent();
+	}
 
 	Super::EndPlay(EndPlayReason);
+}
+
+void ADMCharacterMine::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateWidgetInteractionByMouseCursorPosition();
 }
 
 void ADMCharacterMine::BuildCustomComponents()
 {
 	Super::BuildCustomComponents();
 
-
+	WidgetInteractionComponent = NewObject<UWidgetInteractionComponent>();
+	WidgetInteractionComponent->AddToRoot();
+	//WidgetInteractionComponent->RegisterComponent();
+	WidgetInteractionComponent->RegisterComponentWithWorld(GetWorld());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,7 +91,6 @@ void ADMCharacterMine::BuildCustomComponents()
 #define BIND_CUSTOM_INPUT(_Key)	\
 PlayerInputComponent->BindAction<FDMBindingInputDelegate>(#_Key, EInputEvent::IE_Pressed, this, &ADMCharacterMine::OnInputEvent, EDMInput::_Key, EInputEvent::IE_Pressed);	\
 PlayerInputComponent->BindAction<FDMBindingInputDelegate>(#_Key, EInputEvent::IE_Released, this, &ADMCharacterMine::OnInputEvent, EDMInput::_Key, EInputEvent::IE_Released);	\
-
 
 void ADMCharacterMine::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -88,9 +105,9 @@ void ADMCharacterMine::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("Turn", this, &ADMCharacterMine::TurnAtRateForMouse);
 	PlayerInputComponent->BindAxis("TurnRate", this, &ADMCharacterMine::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &ADMCharacterMine::LookUpAtRateForMouse);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ADMCharacterMine::LookUpAtRate);
 
 	// handle touch devices
@@ -100,11 +117,16 @@ void ADMCharacterMine::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ADMCharacterMine::OnResetVR);
 
+	// Mouse
+	PlayerInputComponent->BindAxis("MouseWheel", this, &ADMCharacterMine::MouseWheelRate);
+
 	// Temp Input
 	BIND_CUSTOM_INPUT(Key_1);
 	BIND_CUSTOM_INPUT(Key_2);
 	BIND_CUSTOM_INPUT(Key_3);
 	BIND_CUSTOM_INPUT(Key_4);
+	BIND_CUSTOM_INPUT(MouseRButton);
+	BIND_CUSTOM_INPUT(MouseLButton);
 }
 
 void ADMCharacterMine::SetTargetedComponent(UDMInteractionComponent* IN InTargetComponent)
@@ -151,14 +173,14 @@ bool ADMCharacterMine::DetermineInputEvent(const EDMInput IN InInputType, const 
 
 bool ADMCharacterMine::DetermineCharacterInputEvent(const EDMInput IN InInputType, const EInputEvent IN InEventType)
 {
-	// 일단.
-	if (InEventType == EInputEvent::IE_Released)
-		return false;
-
 	switch (InInputType)
 	{
 	case EDMInput::Key_1:
 	{
+		// 일단.
+		if (InEventType == EInputEvent::IE_Released)
+			return false;
+
 		if (strAsyncKeyForUI.IsEmpty() == false)
 			return false;
 
@@ -193,6 +215,27 @@ bool ADMCharacterMine::DetermineCharacterInputEvent(const EDMInput IN InInputTyp
 
 	}
 	break;
+
+	case EDMInput::MouseRButton:
+	{
+		bIsMouseRButtonPressed = InEventType == EInputEvent::IE_Pressed ? true : false;
+	}
+	break;
+	case EDMInput::MouseLButton:
+	{
+		if (WidgetInteractionComponent)
+		{
+			if (InEventType == EInputEvent::IE_Pressed)
+			{
+				WidgetInteractionComponent->PressPointerKey(EKeys::LeftMouseButton);
+			}
+			else
+			{
+				WidgetInteractionComponent->ReleasePointerKey(EKeys::LeftMouseButton);
+			}
+		}
+	}
+	break;
 	}
 
 	return false;
@@ -213,4 +256,48 @@ void ADMCharacterMine::TouchStarted(ETouchIndex::Type FingerIndex, FVector Locat
 void ADMCharacterMine::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
 	StopJumping();
+}
+
+void ADMCharacterMine::TurnAtRateForMouse(float Rate)
+{
+	if (bIsMouseRButtonPressed == false)
+		return;
+
+	APawn::AddControllerYawInput(Rate);
+}
+
+void ADMCharacterMine::LookUpAtRateForMouse(float Rate)
+{
+	if (bIsMouseRButtonPressed == false)
+		return;
+
+	APawn::AddControllerPitchInput(Rate);
+}
+
+void ADMCharacterMine::TurnAtRate(float Rate)
+{
+	ADMCharacterBase::TurnAtRate(Rate);
+}
+
+void ADMCharacterMine::LookUpAtRate(float Rate)
+{
+	ADMCharacterBase::LookUpAtRate(Rate);
+}
+
+void ADMCharacterMine::MouseWheelRate(float Rate)
+{
+	if (WidgetInteractionComponent)
+	{
+		WidgetInteractionComponent->ScrollWheel(Rate);
+	}
+}
+
+void ADMCharacterMine::UpdateWidgetInteractionByMouseCursorPosition()
+{
+	FVector MouseWorldLocation, MouseWorldDirection;
+	DMUIUtil::GetMouseWorldTransform(MouseWorldLocation, MouseWorldDirection);
+	WidgetInteractionComponent->SetWorldLocation(MouseWorldLocation);
+	WidgetInteractionComponent->SetWorldRotation(MouseWorldDirection.Rotation());
+	WidgetInteractionComponent->InteractionDistance = 2000.f;
+	WidgetInteractionComponent->bShowDebug = true;
 }

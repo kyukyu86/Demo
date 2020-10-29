@@ -109,6 +109,8 @@ public:
 
 	template<class T>
 	T* FindPanel(const EDMPanelKind IN InKind);
+	template<class T>
+	T* FindWidgetActor(const EDMPanelKind IN InKind);
 
 	void RemoveDisappearProgressList(const EDMPanelKind IN InKind);
 	bool IsDisappearProgress(const EDMPanelKind IN InKind);
@@ -143,6 +145,22 @@ T* DMUIManager::FindPanel(const EDMPanelKind IN InKind)
 		if (WidgetData.PanelKind == InKind)
 		{
 			return Cast<T>(WidgetData.Widget);
+		}
+	}
+
+	return nullptr;
+}
+
+template<class T>
+T* DMUIManager::FindWidgetActor(const EDMPanelKind IN InKind)
+{
+	TDoubleLinkedList<FDMWidgetData>::TDoubleLinkedListNode* Node = WidgetDataList.GetHead();
+	for (; Node != nullptr; Node = Node->GetNextNode())
+	{
+		FDMWidgetData& WidgetData = Node->GetValue();
+		if (WidgetData.PanelKind == InKind)
+		{
+			return Cast<T>(WidgetData.WidgetActor);
 		}
 	}
 

@@ -11,6 +11,8 @@
 #include "../../GameInstance/DMGameInstance.h"
 #include <Blueprint/WidgetBlueprintLibrary.h>
 #include "../../Manager/DMUIManager.h"
+#include "../../UI/Slot/Inventory/DMUIInventoryDetailInfo.h"
+#include "../../UI/Slot/Inventory/DMUIInventorySlotList.h"
 
 ADMWidgetActorInventory::ADMWidgetActorInventory()
 {
@@ -34,10 +36,54 @@ void ADMWidgetActorInventory::BeginPlay()
 	// Collect Actor Sequence
 	BIND_WIDGET_ACTOR_SEQUENCE(EDMWidgetActorInventorySequence::Appear, FName("SequenceAppear"));
 	BIND_WIDGET_ACTOR_SEQUENCE(EDMWidgetActorInventorySequence::Disappear, FName("SequenceDisappear"));
-	BIND_WIDGET_ACTOR_SEQUENCE(EDMWidgetActorInventorySequence::ShowOnDetail, FName("SequenceOnDetail"));
-	BIND_WIDGET_ACTOR_SEQUENCE(EDMWidgetActorInventorySequence::ShowOffDetail, FName("SequenceOffDetail"));
+	BIND_WIDGET_ACTOR_SEQUENCE(EDMWidgetActorInventorySequence::ShowOnDetail, FName("SequenceShowOnDetail"));
+	BIND_WIDGET_ACTOR_SEQUENCE(EDMWidgetActorInventorySequence::ShowOffDetail, FName("SequenceShowOffDetail"));
 
 	OnAppear();
+}
+
+FReply ADMWidgetActorInventory::OnKeyEvent(const int32 IN InComponentID, FKey IN InKeyEvent)
+{	
+	if (IsPlayingActorSequence())
+	{
+		return FReply::Handled();
+	}
+
+	switch ((EDMWidgetActorInventory)InComponentID)
+	{
+	case EDMWidgetActorInventory::SlotList:
+	{
+		if (InKeyEvent == EKeys::Enter)
+		{
+			UDMWidgetComponentBase* DetailInfoWidgetComponent = GetWidgetComponent<UDMWidgetComponentBase>((int32)EDMWidgetActorInventory::DetailInfo);
+			if (DetailInfoWidgetComponent)
+			{
+				PlayActorSequence((int32)EDMWidgetActorInventorySequence::ShowOnDetail);
+				return FReply::Handled();
+			}
+		}
+	}
+	break;
+
+	case EDMWidgetActorInventory::DetailInfo:
+	{
+		if (InKeyEvent == EKeys::Enter)
+		{
+
+		}
+		else if (InKeyEvent == EKeys::One)
+		{
+			UDMWidgetComponentBase* DetailInfoWidgetComponent = GetWidgetComponent<UDMWidgetComponentBase>((int32)EDMWidgetActorInventory::DetailInfo);
+			if (DetailInfoWidgetComponent)
+			{
+				PlayActorSequence((int32)EDMWidgetActorInventorySequence::ShowOffDetail);
+				return FReply::Handled();
+			}
+		}
+	}
+	break;
+	}
+	return FReply::Unhandled();
 }
 
 void ADMWidgetActorInventory::Tick(float DeltaTime)
@@ -70,6 +116,25 @@ void ADMWidgetActorInventory::OnActorSequenceFinished_Implementation()
 	{
 		DMUIManager::Get()->RemoveDisappearProgressList(EDMPanelKind::Inventory);
 		ADMWidgetActorBase::OnDisappear();
+	}
+	break;
+	case EDMWidgetActorInventorySequence::ShowOnDetail:
+	{
+		UDMUIInventoryDetailInfo* DetailInfoWidget = GetWidget<UDMUIInventoryDetailInfo>((int32)EDMWidgetActorInventory::DetailInfo);
+		if (DetailInfoWidget)
+		{
+			DetailInfoWidget->SetFocusThis();
+		}
+	}
+	break;
+	case EDMWidgetActorInventorySequence::Appear:
+	case EDMWidgetActorInventorySequence::ShowOffDetail:
+	{
+		UDMUIInventorySlotList* SlotListWidget = GetWidget<UDMUIInventorySlotList>((int32)EDMWidgetActorInventory::SlotList);
+		if (SlotListWidget)
+		{
+			SlotListWidget->SetFocusThis();
+		}
 	}
 	break;
 	}

@@ -53,11 +53,6 @@ void ADMWidgetActorBase::OnActorSequenceFinished()
 	OnActorSequenceFinished_Implementation();
 }
 
-void ADMWidgetActorBase::OnActorSequenceFinished_Implementation()
-{
-	
-}
-
 void ADMWidgetActorBase::PlayActorSequence(int32 InNewID)
 {
  	if (GetCurrentPlayingActorSequenceID() != ACTOR_SEQUENCE_NONE_ID)

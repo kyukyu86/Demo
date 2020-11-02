@@ -83,6 +83,8 @@ void ADMCharacterMine::BuildCustomComponents()
 	WidgetInteractionComponent->AddToRoot();
 	//WidgetInteractionComponent->RegisterComponent();
 	WidgetInteractionComponent->RegisterComponentWithWorld(GetWorld());
+	WidgetInteractionComponent->InteractionDistance = 2000.f;
+	//WidgetInteractionComponent->bShowDebug = true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -298,6 +300,4 @@ void ADMCharacterMine::UpdateWidgetInteractionByMouseCursorPosition()
 	DMUIUtil::GetMouseWorldTransform(MouseWorldLocation, MouseWorldDirection);
 	WidgetInteractionComponent->SetWorldLocation(MouseWorldLocation);
 	WidgetInteractionComponent->SetWorldRotation(MouseWorldDirection.Rotation());
-	WidgetInteractionComponent->InteractionDistance = 2000.f;
-	WidgetInteractionComponent->bShowDebug = true;
 }

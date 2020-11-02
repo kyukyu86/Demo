@@ -16,9 +16,9 @@ class THIRDPERSON_API UDMUIInventoryItemSlot : public UDMUISlot, public IUserObj
 	GENERATED_BODY()
 	
 private:
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true", BindWidget))
 		UImage* Image_Icon;
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true", BindWidget))
 		UImage* Image_Focus;
 
 protected:

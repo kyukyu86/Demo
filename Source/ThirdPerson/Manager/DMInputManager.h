@@ -16,6 +16,9 @@ class THIRDPERSON_API DMInputManager : public DMSingleton<DMInputManager>
 private:
 	TMap<EDMInput, FDMInputDelegate> InputDelegateList;
 
+	bool bIgnoreInput = false;
+	bool bIgnoreAction = false;
+
 public:
 	DMInputManager();
 	virtual ~DMInputManager();
@@ -26,4 +29,9 @@ public:
 
 	FDMInputDelegate& GetInputDelegate(const EDMInput IN InInputType);
 	void UnBindInputEvent(const EDMInput IN InInputType, FDelegateHandle& IN InDelegateHandle);
+
+	FORCEINLINE void SetIgnoreInput(const bool IN InSet) { bIgnoreInput = InSet; }
+	FORCEINLINE bool IsIgnoreInput() { return bIgnoreInput; }
+	FORCEINLINE void SetIgnoreAction(const bool IN InSet) { bIgnoreAction = InSet; }
+	FORCEINLINE bool IsIgnoreAction() { return bIgnoreAction; }
 };

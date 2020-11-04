@@ -6,9 +6,12 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
-#include "../../../Component/DMActorComponentFSM.h"
-#include "../../../Component/DMActorComponentInteraction.h"
+#include "../../Animation/AnimInstance/DMPlayerAnimInstance.h"
+#include "../../../Component/DMComponentFSM.h"
+#include "../../../Component/DMComponentInteraction.h"
 #include "../../../Manager/DMFSMManager.h"
+#include "../../../Manager/DMCharacterManager.h"
+#include "../../../Data/CustomData/DMMontageTable.h"
 
 // Sets default values
 ADMCharacterBase::ADMCharacterBase()
@@ -36,6 +39,12 @@ void ADMCharacterBase::BeginPlay()
 	
 	BuildCustomComponents();
 
+	UDMPlayerAnimInstance* AnimInstance = Cast<UDMPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		AnimInstance->OnMontageEnded.AddDynamic(this, &ADMCharacterBase::OnMontageEnded);
+	}
+
 	DMFSMManager::Get()->DetermineFSM(this, EDMFSMType::Idle);
 }
 
@@ -59,9 +68,9 @@ void ADMCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 }
 
 void ADMCharacterBase::BuildCustomComponents()
-{
-	CreateComponent<UDMActorComponentFSM>(EDMActorComponentType::FSM, true);
-	CreateComponent<UDMActorComponentInteraction>(EDMActorComponentType::Interaction, true);
+{	
+	CreateComponent<UDMComponentFSM>(EDMComponentType::FSM, true);
+	CreateComponent<UDMComponentInteraction>(EDMComponentType::Interaction, true);
 }
 
 void ADMCharacterBase::TurnAtRate(float Rate)
@@ -103,4 +112,47 @@ void ADMCharacterBase::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+float ADMCharacterBase::MontagePlay(UAnimMontage* IN InMontage, const FString SectionName /*= ""*/, float IN InPlayRate /*= 1.f*/)
+{
+	UDMPlayerAnimInstance* AnimInstance = Cast<UDMPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance == nullptr)
+		return 0.f;
+
+	float fReturnValue = AnimInstance->Montage_Play(InMontage, InPlayRate);
+	if (SectionName.IsEmpty() == false)
+	{
+		AnimInstance->Montage_JumpToSection(*SectionName);
+	}
+	return fReturnValue;
+}
+
+float ADMCharacterBase::MontagePlay(FName IN InRowName)
+{
+	FDMMontageTable* MontageTable = DMCharacterManager::Get()->GetMontageTable(InRowName);
+	if (MontageTable)
+	{
+		return MontagePlay(MontageTable->Montage, MontageTable->SectionName);
+	}
+	return 0.f;
+}
+
+void ADMCharacterBase::OnMontageEnded(UAnimMontage* InMontage, bool InbInterrupted)
+{
+	UDMComponentFSM* FSMComponent = GetComponent<UDMComponentFSM>();
+	if (FSMComponent)
+	{
+		return FSMComponent->OnMontageEnded(InMontage, InbInterrupted);
+	}
+}
+
+bool ADMCharacterBase::DetermineFSM(const FDMFSMData IN InFSMData)
+{
+	UDMComponentFSM* FSMComponent = GetComponent<UDMComponentFSM>();
+	if (FSMComponent)
+	{
+		return FSMComponent->DetermineFSM(InFSMData);
+	}
+	return false;
 }

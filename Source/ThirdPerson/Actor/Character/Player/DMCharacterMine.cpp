@@ -9,16 +9,22 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "../../../Component/DMActorComponentFSM.h"
+#include <Components/WidgetInteractionComponent.h>
+
+#include "../../../Component/DMComponentFSM.h"
+#include "../../../Component/DMComponentMyBattle.h"
+#include "../../../Component/DMComponentInteraction.h"
+
 #include "../../../Manager/DMUIManager.h"
 #include "../../../Manager/DMCharacterManager.h"
 #include "../../../Manager/DMInputManager.h"
-#include "../../../Component/DMActorComponentInteraction.h"
+
 #include "../../FunctionComponent/DMInteractionComponent.h"
-#include <Components/WidgetInteractionComponent.h>
+#include "../../Animation/AnimInstance/DMPlayerAnimInstance.h"
+
 #include "../../../GameInstance/DMGameInstance.h"
 #include "../../../Util/DMUIUtil.h"
-
+#include "../../../Enum/DMActorEnum.h"
 
 
 ADMCharacterMine::ADMCharacterMine() : ADMCharacterPlayer()
@@ -54,6 +60,8 @@ void ADMCharacterMine::BeginPlay()
 {
 	Super::BeginPlay();
 
+
+	OnSpawned();
 }
 
 void ADMCharacterMine::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -72,12 +80,14 @@ void ADMCharacterMine::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UpdateWidgetInteractionByMouseCursorPosition();
+	UpdateWidgetInteractionByMousePosition();
 }
 
 void ADMCharacterMine::BuildCustomComponents()
 {
 	Super::BuildCustomComponents();
+
+	CreateComponent<UDMComponentMyBattle>(EDMComponentType::Battle, true);
 
 	WidgetInteractionComponent = NewObject<UWidgetInteractionComponent>();
 	WidgetInteractionComponent->AddToRoot();
@@ -164,7 +174,7 @@ void ADMCharacterMine::OnInputEvent(const EDMInput IN InInputType, const EInputE
 bool ADMCharacterMine::DetermineInputEvent(const EDMInput IN InInputType, const EInputEvent IN InEventType)
 {
 	// 1. Check Interaction
-	UDMActorComponentInteraction* ActorCompInteraction = GetComponent<UDMActorComponentInteraction>();
+	UDMComponentInteraction* ActorCompInteraction = GetComponent<UDMComponentInteraction>();
 	if (ActorCompInteraction && ActorCompInteraction->OnInputEvent(InInputType, InEventType))
 	{
 		return true;
@@ -200,6 +210,8 @@ bool ADMCharacterMine::DetermineCharacterInputEvent(const EDMInput IN InInputTyp
 			OpenWidgetInfo.CompleteDelegate = CompleteDeleagate;
 			strAsyncKeyForUI = DMUIManager::Get()->OpenPanel(OpenWidgetInfo);
 		}
+
+		return true;
 	}
 	break;
 	case EDMInput::Key_2:
@@ -225,7 +237,7 @@ bool ADMCharacterMine::DetermineCharacterInputEvent(const EDMInput IN InInputTyp
 	break;
 	case EDMInput::MouseLButton:
 	{
-		if (WidgetInteractionComponent)
+		if (WidgetInteractionComponent && WidgetInteractionComponent->GetHoveredWidgetComponent() != nullptr)
 		{
 			if (InEventType == EInputEvent::IE_Pressed)
 			{
@@ -236,11 +248,26 @@ bool ADMCharacterMine::DetermineCharacterInputEvent(const EDMInput IN InInputTyp
 				WidgetInteractionComponent->ReleasePointerKey(EKeys::LeftMouseButton);
 			}
 		}
+		else
+		{
+			UDMComponentMyBattle* ComponentBattle = GetComponent<UDMComponentMyBattle>();
+			if (ComponentBattle)
+			{
+				return ComponentBattle->InputEvent(InInputType, InEventType);
+			}
+		}
+
+		return true;
 	}
 	break;
 	}
 
 	return false;
+}
+
+void ADMCharacterMine::OnSpawned()
+{
+	MontagePlay("Appear");
 }
 
 //====================================================================================
@@ -276,6 +303,22 @@ void ADMCharacterMine::LookUpAtRateForMouse(float Rate)
 	APawn::AddControllerPitchInput(Rate);
 }
 
+void ADMCharacterMine::MoveForward(float Value)
+{
+	if (DMInputManager::Get()->IsIgnoreInput())
+		return;
+
+	ADMCharacterBase::MoveForward(Value);
+}
+
+void ADMCharacterMine::MoveRight(float Value)
+{
+	if (DMInputManager::Get()->IsIgnoreInput())
+		return;
+
+	ADMCharacterBase::MoveRight(Value);
+}
+
 void ADMCharacterMine::TurnAtRate(float Rate)
 {
 	ADMCharacterBase::TurnAtRate(Rate);
@@ -294,7 +337,7 @@ void ADMCharacterMine::MouseWheelRate(float Rate)
 	}
 }
 
-void ADMCharacterMine::UpdateWidgetInteractionByMouseCursorPosition()
+void ADMCharacterMine::UpdateWidgetInteractionByMousePosition()
 {
 	FVector MouseWorldLocation, MouseWorldDirection;
 	DMUIUtil::GetMouseWorldTransform(MouseWorldLocation, MouseWorldDirection);

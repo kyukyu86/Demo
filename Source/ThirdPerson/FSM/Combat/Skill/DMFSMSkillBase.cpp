@@ -11,9 +11,9 @@ DMFSMSkillBase::~DMFSMSkillBase()
 {
 }
 
-void DMFSMSkillBase::OnEnter()
+void DMFSMSkillBase::OnEnter(const FDMFSMData IN InFSMData)
 {
-	DMFSMCombatBase::OnEnter();
+	DMFSMCombatBase::OnEnter(InFSMData);
 
 }
 

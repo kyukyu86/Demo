@@ -13,7 +13,12 @@ DMFSMBase::~DMFSMBase()
 {
 }
 
-void DMFSMBase::OnEnter()
+void DMFSMBase::OnEnter(const FDMFSMData IN InFSMData)
+{
+
+}
+
+void DMFSMBase::OnReEnter(const FDMFSMData IN InFSMData)
 {
 
 }

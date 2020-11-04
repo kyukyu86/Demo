@@ -7,9 +7,8 @@
 #include "../../Enum/DMUIEnum.h"
 #include "DMWidgetTable.generated.h"
 
-/**
- * 
- */
+#define DEF_WIDGET_TABLE_PATH TEXT("/Game/Data/UI/WidgetTable.WidgetTable")
+
 USTRUCT(BlueprintType)
 struct FDMWidgetTable : public FTableRowBase
 {
@@ -34,6 +33,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		FVector AddScale = FVector::OneVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true", Bitmask, BitmaskEnum = "EDMWidgetComponentFlag"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "EDMWidgetComponentFlag"))
 		int32 Flags = 0;
 };

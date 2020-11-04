@@ -2,7 +2,7 @@
 
 
 #include "DMCharacterMonster.h"
-#include "../../../Component/DMActorComponentFSM.h"
+#include "../../../Component/DMComponentFSM.h"
 
 
 

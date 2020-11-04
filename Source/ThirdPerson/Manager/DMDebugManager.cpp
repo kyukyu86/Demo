@@ -8,7 +8,7 @@
 #include "../GameInstance/DMGameInstance.h"
 #include "../Actor/Character/Player/DMCharacterMine.h"
 #include "../UI/Panel/DMUIPanel_Debug.h"
-#include "../Component/DMActorComponentFSM.h"
+#include "../Component/DMComponentFSM.h"
 #include "../Util/DMEnumUtil.h"
 #include "../Actor/FunctionComponent/DMInteractionComponent.h"
 
@@ -56,14 +56,23 @@ void DMDebugManager::MakeDebugString(FString& OUT OutString)
 		return;
 
 	// FSM
-	UDMActorComponentFSM* FSMComponent = pMine->GetComponent<UDMActorComponentFSM>();
+	UDMComponentFSM* FSMComponent = pMine->GetComponent<UDMComponentFSM>();
 	if (FSMComponent)
 	{
+		FDMFSMData FSMData;
+		FSMComponent->GetCurrentFSMData(FSMData);
+
 		AddString = DMEnumUtil::EnumToString<EDMFSMType>("EDMFSMType", FSMComponent->GetFSMType());
 		OutString += "FSM : " + AddString + "\n";
 
 		AddString = DMEnumUtil::EnumToString<EDMIdleType>("EDMIdleType", FSMComponent->GetIdleType());
 		OutString += "Idle : " + AddString + "\n";
+
+		if (FSMData.AttackTable)
+		{
+			AddString = FSMData.AttackTable->Data.SectionName;
+			OutString += "Sequence : " + AddString + "\n";
+		}
 	}
 
 	// Target

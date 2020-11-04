@@ -9,12 +9,17 @@
 
 
 class ADMCharacterMine;
+struct FDMAttackTable;
+struct FDMMontageTable;
 
 class THIRDPERSON_API DMCharacterManager : public DMSingleton<DMCharacterManager>
 {
 private:
 	ADMCharacterMine* MyCharacter = nullptr;
 	FString strAsyncKey = "";
+
+	TAssetPtr<UDataTable> AttackTable = nullptr;
+	TAssetPtr<UDataTable> MontageTable = nullptr;
 
 public:
 	DMCharacterManager();
@@ -37,4 +42,8 @@ public:
 	// Target
 	AActor* GetMyTargetActor();
 	bool IsTargetedActor(AActor* IN InActor);
+
+	// Battle
+	FDMAttackTable* GetAttackTable(const FName IN InRowName);
+	FDMMontageTable* GetMontageTable(const FName IN InRowName);
 };

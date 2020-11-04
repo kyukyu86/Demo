@@ -8,7 +8,7 @@
 #include <Net/UnrealNetwork.h>
 #include "../../Manager/DMUIManager.h"
 #include "../Character/Base/DMCharacterBase.h"
-#include "../../Component/DMActorComponentInteraction.h"
+#include "../../Component/DMComponentInteraction.h"
 #include "../../Manager/DMCharacterManager.h"
 #include "../../Util/DMActorUtil.h"
 #include "../Character/Player/DMCharacterMine.h"
@@ -85,7 +85,7 @@ void UDMInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	{
 		if (bIsInteractionableDistance == false)
 		{
-			UDMActorComponentInteraction* ActorCompInteraction = pMine->GetComponent<UDMActorComponentInteraction>();
+			UDMComponentInteraction* ActorCompInteraction = pMine->GetComponent<UDMComponentInteraction>();
 			if (ActorCompInteraction == nullptr)
 				return;
 
@@ -102,7 +102,7 @@ void UDMInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	{
 		if (bIsInteractionableDistance)
 		{
-			UDMActorComponentInteraction* ActorCompInteraction = pMine->GetComponent<UDMActorComponentInteraction>();
+			UDMComponentInteraction* ActorCompInteraction = pMine->GetComponent<UDMComponentInteraction>();
 			if (ActorCompInteraction == nullptr)
 				return;
 
@@ -151,7 +151,7 @@ void UDMInteractionComponent::PostEditChangeProperty(FPropertyChangedEvent& Prop
 // 	if (CastedCharacterBase == nullptr)
 // 		return;
 // 
-// 	UDMActorComponentInteraction* ActorCompInteraction = CastedCharacterBase->GetComponent<UDMActorComponentInteraction>();
+// 	UDMComponentInteraction* ActorCompInteraction = CastedCharacterBase->GetComponent<UDMComponentInteraction>();
 // 	if (ActorCompInteraction == nullptr)
 // 		return;
 // 
@@ -174,7 +174,7 @@ void UDMInteractionComponent::PostEditChangeProperty(FPropertyChangedEvent& Prop
 // 	if (CastedCharacterBase == nullptr)
 // 		return;
 // 
-// 	UDMActorComponentInteraction* ActorCompInteraction = CastedCharacterBase->GetComponent<UDMActorComponentInteraction>();
+// 	UDMComponentInteraction* ActorCompInteraction = CastedCharacterBase->GetComponent<UDMComponentInteraction>();
 // 	if (ActorCompInteraction == nullptr)
 // 		return;
 // 

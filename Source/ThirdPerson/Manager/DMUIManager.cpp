@@ -7,8 +7,6 @@
 #include "../Data/CustomData/DMWidgetTable.h"
 #include "../Actor/WidgetActor/Base/DMWidgetActorBase.h"
 
-#define DEF_WIDGET_TABLE_PATH TEXT("/Game/Data/UI/WidgetTable.WidgetTable")
-
 
 //====================================================================================
 //	WidgetInfo

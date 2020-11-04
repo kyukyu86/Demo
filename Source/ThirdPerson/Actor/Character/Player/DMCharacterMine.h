@@ -36,6 +36,8 @@ private:
 	bool DetermineInputEvent(const EDMInput IN InInputType, const EInputEvent IN InEventType);
 	bool DetermineCharacterInputEvent(const EDMInput IN InInputType, const EInputEvent IN InEventType);
 
+	void OnSpawned();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -43,16 +45,18 @@ protected:
 	virtual void BuildCustomComponents() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void MoveForward(float Value) override;
+	virtual void MoveRight(float Value) override;
+	virtual void TurnAtRate(float Rate) override;
+	virtual void LookUpAtRate(float Rate) override;
 	void OnResetVR();
 	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);	
 	void TurnAtRateForMouse(float Rate);
-	void LookUpAtRateForMouse(float Rate);
-	virtual void TurnAtRate(float Rate);
-	virtual void LookUpAtRate(float Rate);
+	void LookUpAtRateForMouse(float Rate);	
 	void MouseWheelRate(float Rate);
 
-	void UpdateWidgetInteractionByMouseCursorPosition();
+	void UpdateWidgetInteractionByMousePosition();
 
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

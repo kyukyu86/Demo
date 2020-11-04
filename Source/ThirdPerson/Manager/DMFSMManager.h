@@ -7,13 +7,14 @@
 #include "../Enum/DMPathEnum.h"
 #include "../Enum/DMActorEnum.h"
 #include "../FSM/Idle/DMFSMIdleBase.h"
-#include "../Component/DMActorComponentFSM.h"
+#include "../Component/DMComponentFSM.h"
+#include "../Struct/DMActorStruct.h"
 
 class ADMCharacterBase;
 
 class THIRDPERSON_API DMFSMManager : public DMSingleton<DMFSMManager>
 {
-	friend UDMActorComponentFSM;
+	friend UDMComponentFSM;
 
 private:
 	DMFSMBase* FactoryFSM(ADMCharacterBase* IN InCharacter, EDMFSMType IN InFSMType);
@@ -27,6 +28,7 @@ public:
 	virtual void OnShutdown() override;
 
 	void DetermineFSM(ADMCharacterBase* IN InCharacter, EDMFSMType IN InNewFSM);
+	void DetermineFSM(ADMCharacterBase* IN InCharacter, FDMFSMData IN InNewFSMData);
 	void DetermineIdle(ADMCharacterBase* IN InCharacter, EDMIdleType IN InNewIdle);
 	
 };

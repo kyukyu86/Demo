@@ -11,9 +11,9 @@ DMFSMHittedNormal::~DMFSMHittedNormal()
 {
 }
 
-void DMFSMHittedNormal::OnEnter()
+void DMFSMHittedNormal::OnEnter(const FDMFSMData IN InFSMData)
 {
-	DMFSMHittedBase::OnEnter();
+	DMFSMHittedBase::OnEnter(InFSMData);
 
 }
 

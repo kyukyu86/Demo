@@ -13,11 +13,6 @@ UCLASS()
 class THIRDPERSON_API UDMUISlot_MaterialEffect : public UDMUISlot
 {
 	GENERATED_BODY()
-	
-protected:
-	virtual void NativeConstruct() override;
-	virtual void NativeDestruct() override;
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
@@ -27,4 +22,10 @@ private:
 
 	class UMaterialInstanceDynamic* MaterialInstance = nullptr;
 	float fRate = 0.f;
+
+protected:
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 };

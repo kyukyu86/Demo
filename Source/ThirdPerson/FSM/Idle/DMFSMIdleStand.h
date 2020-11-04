@@ -14,7 +14,7 @@ public:
 	virtual ~DMFSMIdleStand();
 
 public:
-	virtual void OnEnter();
+	virtual void OnEnter(const FDMFSMData IN InFSMData);
 	virtual void OnExit();
 	virtual void OnTick();
 };

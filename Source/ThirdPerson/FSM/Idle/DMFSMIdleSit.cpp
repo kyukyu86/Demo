@@ -11,9 +11,9 @@ DMFSMIdleSit::~DMFSMIdleSit()
 {
 }
 
-void DMFSMIdleSit::OnEnter()
+void DMFSMIdleSit::OnEnter(const FDMFSMData IN InFSMData)
 {
-	DMFSMIdleBase::OnEnter();
+	DMFSMIdleBase::OnEnter(InFSMData);
 
 }
 

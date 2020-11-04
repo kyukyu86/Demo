@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "../Struct/DMActorStruct.h"
 
 class ADMCharacterBase;
 class UAnimationAsset;
@@ -17,10 +18,12 @@ public:
 	virtual ~DMFSMBase();
 
 public:
-	virtual void OnEnter();
+	virtual void OnEnter(const FDMFSMData IN InFSMData);
+	virtual void OnReEnter(const FDMFSMData IN InFSMData);
 	virtual void OnExit();
 	virtual void OnTick();
 
 	FORCEINLINE void SetOwner(ADMCharacterBase* IN InOwnerCharacter) { OwnerChatacter = InOwnerCharacter; }
+	FORCEINLINE ADMCharacterBase* GetOwner() { return OwnerChatacter; }
 	void PlayAnimation(UAnimationAsset* IN InAnimAsset, bool IN InLooping = false);
 };

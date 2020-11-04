@@ -11,9 +11,9 @@ DMFSMSkillNormal::~DMFSMSkillNormal()
 {
 }
 
-void DMFSMSkillNormal::OnEnter()
+void DMFSMSkillNormal::OnEnter(const FDMFSMData IN InFSMData)
 {
-	DMFSMSkillBase::OnEnter();
+	DMFSMSkillBase::OnEnter(InFSMData);
 
 }
 

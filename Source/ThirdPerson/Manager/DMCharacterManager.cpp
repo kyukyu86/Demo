@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "DMCharacterManager.h"
 #include "DMAsyncLoadManager.h"
 
@@ -8,6 +7,8 @@
 #include "../GameInstance/DMGameInstance.h"
 #include "../Actor/Character/Player/DMCharacterMine.h"
 #include "../Actor/FunctionComponent/DMInteractionComponent.h"
+#include "../Data/CustomData/DMAttackTable.h"
+#include "../Data/CustomData/DMMontageTable.h"
 
 #include <GameFramework/PlayerStart.h>
 #include <EngineUtils.h>
@@ -25,12 +26,35 @@ DMCharacterManager::~DMCharacterManager()
 
 void DMCharacterManager::OnInit()
 {
+	FStringAssetReference rAssetRef = FStringAssetReference(DEF_ATTACK_TABLE_PATH);
+	rAssetRef.TryLoad();
+	UObject* pObject = rAssetRef.ResolveObject();
+	if (pObject)
+	{
+		AttackTable = Cast<UDataTable>(pObject);
+		AttackTable.Get()->AddToRoot();
+	}
 
+	rAssetRef = FStringAssetReference(DEF_MONTAGE_TABLE_PATH);
+	rAssetRef.TryLoad();
+	pObject = rAssetRef.ResolveObject();
+	if (pObject)
+	{
+		MontageTable = Cast<UDataTable>(pObject);
+		MontageTable.Get()->AddToRoot();
+	}
 }
 
 void DMCharacterManager::OnShutdown()
 {
-
+	if (AttackTable->IsValidLowLevel() && AttackTable->IsRooted())
+	{
+		AttackTable->RemoveFromRoot();
+	}
+	if (MontageTable->IsValidLowLevel() && MontageTable->IsRooted())
+	{
+		MontageTable->RemoveFromRoot();
+	}
 }
 
 void DMCharacterManager::ChangeFSM(EDMFSMType IN InNewFSMType)
@@ -99,4 +123,30 @@ bool DMCharacterManager::IsTargetedActor(AActor* IN InActor)
 		return false;
 
 	return TargetComponent->GetParentActor() == InActor;
+}
+
+FDMAttackTable* DMCharacterManager::GetAttackTable(const FName IN InRowName)
+{
+	if (AttackTable == nullptr)
+		return nullptr;
+
+	FString strContext = "";
+	FDMAttackTable* FoundTable = AttackTable->FindRow<FDMAttackTable>(InRowName, strContext);
+	if (FoundTable == nullptr)
+		return nullptr;
+
+	return FoundTable;
+}
+
+FDMMontageTable* DMCharacterManager::GetMontageTable(const FName IN InRowName)
+{
+	if (MontageTable == nullptr)
+		return nullptr;
+
+	FString strContext = "";
+	FDMMontageTable* FoundTable = MontageTable->FindRow<FDMMontageTable>(InRowName, strContext);
+	if (FoundTable == nullptr)
+		return nullptr;
+
+	return FoundTable;
 }

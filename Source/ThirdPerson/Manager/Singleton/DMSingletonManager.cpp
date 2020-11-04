@@ -9,6 +9,7 @@
 #include "../DMFSMManager.h"
 #include "../DMTargetingManager.h"
 #include "../DMDebugManager.h"
+#include "../DMInputManager.h"
 
 TDoubleLinkedList<class DMSingletonObject*> DMSingletonManager::SingletonList;
 FDelegateHandle DMSingletonManager::TickHandle;
@@ -25,6 +26,7 @@ void DMSingletonManager::Start()
 	DECLARE_SINGLETON(DMUIManager);
 	DECLARE_SINGLETON(DMCharacterManager);
 	DECLARE_SINGLETON(DMFSMManager);
+	DECLARE_SINGLETON(DMInputManager);
 	DECLARE_SINGLETON(DMTargetingManager);
 	DECLARE_SINGLETON(DMDebugManager);
 

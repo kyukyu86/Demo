@@ -14,37 +14,18 @@ enum class EDMInput : uint8
 	MouseLButton
 };
 
-enum class EDMActorComponentType : uint8
+enum class EDMComponentType : uint8
 {
 	None,
 
 	FSM,
+	Battle,
 	Interaction,
 };
 
-UENUM(BlueprintType)
-enum class EDMIdleType : uint8
-{
-	None,
-
-	Stand,
-	Sit,
-	Fly,
-};
-
-UENUM(BlueprintType)
-enum class EDMFSMType : uint8
-{
-	None,
-
-	Idle,
-
-	AttackNormal,
-	
-	SkillNormal,
-
-	Hitted,
-};
+//====================================================================================
+// Interaction
+//====================================================================================
 
 UENUM(BlueprintType)
 enum class EDMInteractionResult : uint8
@@ -62,3 +43,48 @@ enum class EDMInteractionResultAfter : uint8
 	Delete,
 };
 
+//====================================================================================
+// Character
+//====================================================================================
+
+UENUM(BlueprintType)
+enum class EDMIdleType : uint8
+{
+	None,
+	Stand,
+	Sit,
+	Fly,
+};
+
+UENUM(BlueprintType)
+enum class EDMFSMType : uint8
+{
+	None,
+	Idle,
+	AttackNormal,
+	SkillNormal,
+	Hitted,
+};
+
+UENUM(BlueprintType)
+enum class EDMMontageType : uint8
+{
+	None,
+	Appear,
+	Attack,
+	Skill,
+	Die,
+	Jump,
+	Fly,
+};
+
+UENUM(BlueprintType)
+enum class EDMCombatInputType : uint8
+{
+	Immediately,
+	Hold,
+};
+
+//====================================================================================
+//
+//====================================================================================

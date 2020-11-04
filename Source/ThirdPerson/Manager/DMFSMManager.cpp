@@ -4,7 +4,7 @@
 #include "DMFSMManager.h"
 #include "../Util/DMEnumUtil.h"
 #include "../Actor/Character/Base/DMCharacterBase.h"
-#include "../Component/DMActorComponentFSM.h"
+#include "../Component/DMComponentFSM.h"
 
 #include "../FSM/Idle/DMFSMIdleStand.h"
 #include "../FSM/Idle/DMFSMIdleFly.h"
@@ -41,20 +41,25 @@ void DMFSMManager::OnShutdown()
 
 void DMFSMManager::DetermineFSM(ADMCharacterBase* IN InCharacter, EDMFSMType IN InNewFSM)
 {
+	DetermineFSM(InCharacter, FDMFSMData(InNewFSM));
+}
+
+void DMFSMManager::DetermineFSM(ADMCharacterBase* IN InCharacter, FDMFSMData IN InNewFSMData)
+{
 	if (InCharacter == nullptr)
 	{
 		ensureMsgf(false, TEXT("InCharacter is Invalid"));
 		return;
 	}
 
-	UDMActorComponentFSM* FSMComponent = InCharacter->GetComponent<UDMActorComponentFSM>();
+	UDMComponentFSM* FSMComponent = InCharacter->GetComponent<UDMComponentFSM>();
 	if (FSMComponent == nullptr)
 	{
 		ensureMsgf(false, TEXT("FSMComponent is Invalid"));
 		return;
 	}
 
-	FSMComponent->DetermineFSM(InNewFSM);
+	FSMComponent->DetermineFSM(InNewFSMData);
 }
 
 void DMFSMManager::DetermineIdle(ADMCharacterBase* IN InCharacter, EDMIdleType IN InNewIdle)
@@ -81,7 +86,7 @@ DMFSMBase* DMFSMManager::FactoryFSM(ADMCharacterBase* IN InCharacter, EDMFSMType
 
 DMFSMIdleBase* DMFSMManager::FactoryFSMIdle(ADMCharacterBase* IN InCharacter, EDMFSMType IN InFSMType)
 {
-	UDMActorComponentFSM* FSMComponent = InCharacter->GetComponent<UDMActorComponentFSM>();
+	UDMComponentFSM* FSMComponent = InCharacter->GetComponent<UDMComponentFSM>();
 	if (FSMComponent == nullptr)
 	{
 		ensureMsgf(false, TEXT("FSMComponent is Invalid"));

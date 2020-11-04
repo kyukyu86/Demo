@@ -11,9 +11,9 @@ DMFSMHittedBase::~DMFSMHittedBase()
 {
 }
 
-void DMFSMHittedBase::OnEnter()
+void DMFSMHittedBase::OnEnter(const FDMFSMData IN InFSMData)
 {
-	DMFSMCombatBase::OnEnter();
+	DMFSMCombatBase::OnEnter(InFSMData);
 
 }
 

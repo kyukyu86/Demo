@@ -6,7 +6,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "../../../Manager/DMUIManager.h"
-#include "../../../Component/DMActorComponentFSM.h"
+#include "../../../Component/DMComponentFSM.h"
+#include "Animation/AnimMontage.h"
 
 
 
@@ -29,6 +30,6 @@ void ADMCharacterPlayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ADMCharacterPlayer::BuildCustomComponents()
 {
-	Super::BuildCustomComponents();
+	ADMCharacterBase::BuildCustomComponents();
 
 }

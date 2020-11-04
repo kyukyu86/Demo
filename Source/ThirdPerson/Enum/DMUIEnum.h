@@ -21,6 +21,7 @@ enum class EDMPanelKind : uint8
 	Main,
 	Menu,
 	Inventory,
+	Charge,
 };
 
 UENUM(BlueprintType)

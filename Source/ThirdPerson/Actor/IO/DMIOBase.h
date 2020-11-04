@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../../Interface/DMComponentInterface.h"
+#include "../../Interface/DMInterfaceComponentManagement.h"
 #include "DMIOBase.generated.h"
 
 
 class UDMInteractionComponent;
 
 UCLASS()
-class THIRDPERSON_API ADMIOBase : public AActor, public IDMComponentInterface
+class THIRDPERSON_API ADMIOBase : public AActor, public IDMInterfaceComponentManagement
 {
 	GENERATED_UCLASS_BODY()
 	

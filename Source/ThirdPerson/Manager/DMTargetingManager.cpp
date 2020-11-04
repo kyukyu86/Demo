@@ -47,6 +47,7 @@ void DMTargetingManager::UpdateTarget()
 		return;
 
 	FVector TraceLocation = MyCharacter->GetActorLocation();
+	TraceLocation.Z += 20.f;
 	FVector TraceForward = MyCharacter->GetActorForwardVector();
 	float RayLength = 100.f;
 
@@ -61,7 +62,7 @@ void DMTargetingManager::UpdateTarget()
 
 	UWorld* pWorld = UDMGameInstance::GetGameInstance()->GetWorld();
 	//FlushPersistentDebugLines(pWorld);
-	DrawDebugLine(pWorld, StartLocation, EndLocation, FColor::Green, false, 0.1f, 0, 5.f);
+	DrawDebugLine(pWorld, StartLocation, EndLocation, FColor::Green, false, 0.05f, 0, 5.f);
 	
 	FHitResult Hit(1.0f);
 	if (pWorld->LineTraceSingleByChannel(Hit, StartLocation, EndLocation, ECC_GameTraceChannel1, CollisionParams) == true)

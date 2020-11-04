@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "../../../Interface/DMComponentInterface.h"
+#include "../../../Interface/DMInterfaceComponentManagement.h"
 #include "../../../Enum/DMActorEnum.h"
 #include "../../../Struct/DMActorStruct.h"
 #include "DMCharacterBase.generated.h"
@@ -26,7 +26,7 @@ class UAnimMontage;
 
 
 UCLASS()
-class THIRDPERSON_API ADMCharacterBase : public ACharacter, public IDMComponentInterface
+class THIRDPERSON_API ADMCharacterBase : public ACharacter, public IDMInterfaceComponentManagement
 {
 	GENERATED_BODY()
 

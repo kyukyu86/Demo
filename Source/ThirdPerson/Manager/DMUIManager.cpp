@@ -48,9 +48,13 @@ FDMOpenWidgetInfo::FDMOpenWidgetInfo(EDMPanelKind IN InPanelKind, FVector IN InS
 	case EDMWidgetType::WidgetActor:
 	{
 		WidgetPath = FoundWidgetData->WidgetActor->GetPathName();
-		Transform.SetLocation(InStdLocation + FoundWidgetData->AddLocation);
-		Transform.SetRotation((InStdRotator + FoundWidgetData->AddRotator).Quaternion());
 		Transform.SetScale3D(InStdScale * FoundWidgetData->AddScale);
+
+		FVector ConvertLocation = FoundWidgetData->AddLocation;
+		ConvertLocation = ConvertLocation.RotateAngleAxis(InStdRotator.Yaw, FVector(0, 0, 1));
+		FRotator ConvertRotator = InStdRotator + FoundWidgetData->AddRotator;
+		Transform.SetLocation(InStdLocation + ConvertLocation);
+		Transform.SetRotation(ConvertRotator.Quaternion());
 	}
 	break;
 	}

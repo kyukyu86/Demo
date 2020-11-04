@@ -71,7 +71,7 @@ FDMOpenWidgetInfo::FDMOpenWidgetInfo(FString IN InWidgetPath, FTransform IN InSt
 	WidgetCreationType = EDMWidgetCreationType::WidgetPath;
 
 	WidgetPath = InWidgetPath;
-	InWidgetType = InWidgetType;
+	WidgetType = InWidgetType;
 	WidgetComponentFlags = InAddFlags;
 	OwnerObject = InOwnerObject;
 

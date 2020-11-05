@@ -4,6 +4,7 @@
 #include "DMUIInventorySlotList.h"
 #include <Components/TileView.h>
 #include "DMUIInventoryItemSlot.h"
+#include "../../Custom/TileView/DMUITileView.h"
 
 
 void UDMUIInventorySlotList::NativePreConstruct()
@@ -42,6 +43,22 @@ void UDMUIInventorySlotList::NativeDestruct()
 void UDMUIInventorySlotList::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+}
+
+FReply UDMUIInventorySlotList::NativeOnAnalogValueChanged(const FGeometry& InGeometry, const FAnalogInputEvent& InAnalogEvent)
+{
+	if (InAnalogEvent.GetKey() == EKeys::Gamepad_RightY)
+	{
+		float fAddAnalogValue = InAnalogEvent.GetAnalogValue() * -1.f;
+
+		if (TileView_List->AddScrollOffset(fAddAnalogValue))
+		{
+
+		}
+
+		return FReply::Handled();
+	}
+	return FReply::Unhandled();
 }
 
 UDMInventoryItemSlotDataObject* UDMUIInventorySlotList::GetDataObject(const int32 IN InFindID)

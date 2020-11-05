@@ -7,7 +7,7 @@
 #include "../../Data/DMInventoryItemSlotData.h"
 #include "DMUIInventorySlotList.generated.h"
 
-class UTileView;
+class UDMUITileView;
 
 UCLASS()
 class THIRDPERSON_API UDMUIInventorySlotList : public UDMUISlot
@@ -16,7 +16,7 @@ class THIRDPERSON_API UDMUIInventorySlotList : public UDMUISlot
 	
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true", BindWidget))
-		UTileView* TileView_List;
+		UDMUITileView* TileView_List;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|TileView", meta = (AllowPrivateAccess = "true"))
 		int32 MinTileNum;
@@ -33,6 +33,7 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+	virtual FReply NativeOnAnalogValueChanged(const FGeometry& InGeometry, const FAnalogInputEvent& InAnalogEvent) override;
 
 	// for Test
 	UDMInventoryItemSlotDataObject* GetDataObject(const int32 IN InFindID);

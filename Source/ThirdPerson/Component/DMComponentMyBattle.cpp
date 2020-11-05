@@ -128,7 +128,38 @@ bool UDMComponentMyBattle::MouseRButtonEvent(const EDMInput IN InInputType, cons
 	{
 	case EDMFSMType::AttackNormal:
 	{
+		// 연속 공격
+		FDMAttackTable* LinkedAttackTable = FDMAttackTable::GetValidLinkedAttackTable(CurrentFSMData.AttackTable, InInputType, InEventType);
+		if (LinkedAttackTable)
+		{
+			DMFSMManager::Get()->DetermineFSM(DMCharacterManager::Get()->GetMyCharacter(), FDMFSMData(LinkedAttackTable));
+			if (LinkedAttackTable->Data.InputHoldMaxTime != 0.f)
+			{
+				bChargeState = true;
 
+				auto AsyncCreateComplete = FDMCompleteAsyncLoad::CreateLambda([=](UObject* InObject, FString InKey)
+				{
+					UDMUIPanel_Charge* pPanel = Cast<UDMUIPanel_Charge>(InObject);
+					if (pPanel)
+					{
+						pPanel->SetGoalTime(LinkedAttackTable->Data.InputHoldMaxTime);
+					}
+				});
+				FDMOpenWidgetInfo WidgetInfo(EDMPanelKind::Charge, GetOwner()->GetActorLocation());
+				WidgetInfo.CompleteDelegate = AsyncCreateComplete;
+				DMUIManager::Get()->OpenPanel(WidgetInfo);
+			}
+			else
+			{
+				bChargeState = false;
+				DMUIManager::Get()->ClosePanel(EDMPanelKind::Charge);
+			}
+		}
+		else
+		{
+			bChargeState = false;
+			DMUIManager::Get()->ClosePanel(EDMPanelKind::Charge);
+		}
 	}
 	break;
 	case EDMFSMType::SkillNormal:

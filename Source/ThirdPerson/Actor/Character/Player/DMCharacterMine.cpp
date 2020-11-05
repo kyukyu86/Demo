@@ -232,6 +232,24 @@ bool ADMCharacterMine::DetermineCharacterInputEvent(const EDMInput IN InInputTyp
 
 	case EDMInput::MouseRButton:
 	{
+		if (WidgetInteractionComponent && WidgetInteractionComponent->GetHoveredWidgetComponent() != nullptr)
+		{
+			if (InEventType == EInputEvent::IE_Pressed)
+			{
+				WidgetInteractionComponent->PressPointerKey(EKeys::RightMouseButton);
+			}
+			else
+			{
+				WidgetInteractionComponent->ReleasePointerKey(EKeys::RightMouseButton);
+			}
+			return true;
+		}
+		UDMComponentMyBattle* ComponentBattle = GetComponent<UDMComponentMyBattle>();
+		if (ComponentBattle && ComponentBattle->InputEvent(InInputType, InEventType))
+		{
+			return true;
+		}
+		
 		bIsMouseRButtonPressed = InEventType == EInputEvent::IE_Pressed ? true : false;
 	}
 	break;

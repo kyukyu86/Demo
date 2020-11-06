@@ -22,6 +22,7 @@ enum class EDMPanelKind : uint8
 	Menu,
 	Inventory,
 	Charge,
+	SkillNotice,
 };
 
 UENUM(BlueprintType)

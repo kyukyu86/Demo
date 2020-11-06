@@ -14,6 +14,12 @@ class THIRDPERSON_API UDMPlayerAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+protected:
+	UPROPERTY(BlueprintReadOnly, Category = DMPlayerAnimInstance, meta = (AllowPrivateAccess = "true"))
+		bool bRun = false;
+
 public:
 	virtual void NativeBeginPlay() override;
+
+	void SetRun(const bool IN InSet) { bRun = InSet; }
 };

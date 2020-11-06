@@ -139,6 +139,7 @@ void ADMCharacterMine::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	BIND_CUSTOM_INPUT(Key_4);
 	BIND_CUSTOM_INPUT(MouseRButton);
 	BIND_CUSTOM_INPUT(MouseLButton);
+	BIND_CUSTOM_INPUT(ShiftL);
 }
 
 void ADMCharacterMine::SetTargetedComponent(UDMInteractionComponent* IN InTargetComponent)
@@ -275,6 +276,21 @@ bool ADMCharacterMine::DetermineCharacterInputEvent(const EDMInput IN InInputTyp
 			}
 		}
 
+		return true;
+	}
+	break;
+	case EDMInput::ShiftL:
+	{
+		UDMPlayerAnimInstance* AnimInstance = Cast<UDMPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+		if (AnimInstance)
+		{
+			AnimInstance->SetRun(InEventType == EInputEvent::IE_Pressed ? true : false);
+		}
+		UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+		if (MovementComponent)
+		{
+			MovementComponent->MaxWalkSpeed = InEventType == EInputEvent::IE_Pressed ? CustomizeMaxSprintSpeed : CustomizeMaxWalkSpeed;
+		}
 		return true;
 	}
 	break;

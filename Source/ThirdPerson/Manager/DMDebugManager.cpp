@@ -11,6 +11,7 @@
 #include "../Component/DMComponentFSM.h"
 #include "../Util/DMEnumUtil.h"
 #include "../Actor/FunctionComponent/DMInteractionComponent.h"
+#include <GameFramework/CharacterMovementComponent.h>
 
 
 DMDebugManager::DMDebugManager()
@@ -96,4 +97,17 @@ void DMDebugManager::MakeDebugString(FString& OUT OutString)
 	}
 	AddString += "\n";
 	OutString += AddString;
+
+	// Movement
+	UCharacterMovementComponent* MovementComponent = pMine->GetCharacterMovement();
+	if (MovementComponent)
+	{
+		AddString += FString::Printf(TEXT("MoveSpeed : %.0f"), pMine->GetVelocity().Size());
+
+		AddString += "\n";
+		OutString += AddString;
+	}
+
+
+
 }

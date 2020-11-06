@@ -11,7 +11,9 @@ enum class EDMInput : uint8
 	Key_4,
 
 	MouseRButton,
-	MouseLButton
+	MouseLButton,
+
+	ShiftL,
 };
 
 enum class EDMComponentType : uint8
@@ -83,6 +85,12 @@ enum class EDMCombatInputType : uint8
 {
 	Immediately,
 	Hold,
+};
+
+enum class EDMSkillNotice
+{
+	MouseL,
+	MouseR,
 };
 
 //====================================================================================

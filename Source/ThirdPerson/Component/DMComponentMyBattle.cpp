@@ -69,6 +69,8 @@ bool UDMComponentMyBattle::MouseLButtonEvent(const EDMInput IN InInputType, cons
 		if (LinkedAttackTable)
 		{
 			DMFSMManager::Get()->DetermineFSM(DMCharacterManager::Get()->GetMyCharacter(), FDMFSMData(LinkedAttackTable));
+
+			// UI : Charge
 			if (LinkedAttackTable->Data.InputHoldMaxTime != 0.f)
 			{
 				bChargeState = true;
@@ -100,6 +102,8 @@ bool UDMComponentMyBattle::MouseLButtonEvent(const EDMInput IN InInputType, cons
 			}
 
 			bChargeState = false;
+
+			// UI : Charge
 			DMUIManager::Get()->ClosePanel(EDMPanelKind::Charge);
 		}
 	}

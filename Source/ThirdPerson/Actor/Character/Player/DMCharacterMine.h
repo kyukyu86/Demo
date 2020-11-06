@@ -25,6 +25,12 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UCameraComponent* FollowCamera;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		float CustomizeMaxWalkSpeed = 600.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		float CustomizeMaxSprintSpeed = 800.f;
+
 	class UWidgetInteractionComponent* WidgetInteractionComponent = nullptr;
 	UDMInteractionComponent* TargetedInteractionComponent = nullptr;
 	bool bIsMouseRButtonPressed = false;
